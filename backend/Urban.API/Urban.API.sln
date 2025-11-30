@@ -1,0 +1,55 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36310.24
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Urban.API", "Urban.API.csproj", "{3567A995-05A4-4FD2-8B5A-3AD7AF7AB236}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Presentation", "Presentation", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Core", "Core", "{C3DC63B9-0505-453A-8589-15F540B07955}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Infrastructure", "Infrastructure", "{3D685D16-DB00-461C-9B33-2AF58988ECBB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Urban.Application", "..\Urban.Application\Urban.Application.csproj", "{7CDD6A25-5EE7-4A17-BFDD-6062B521D86C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Urban.Domain", "..\Urban.Domain\Urban.Domain.csproj", "{3582B018-42D8-42F3-8BA4-FA0DFED865F5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Urban.Persistence", "..\Urban.Persistence\Urban.Persistence.csproj", "{44C4582D-86D5-4181-A82D-6CA894F75DC2}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{3567A995-05A4-4FD2-8B5A-3AD7AF7AB236}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3567A995-05A4-4FD2-8B5A-3AD7AF7AB236}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3567A995-05A4-4FD2-8B5A-3AD7AF7AB236}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3567A995-05A4-4FD2-8B5A-3AD7AF7AB236}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7CDD6A25-5EE7-4A17-BFDD-6062B521D86C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7CDD6A25-5EE7-4A17-BFDD-6062B521D86C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7CDD6A25-5EE7-4A17-BFDD-6062B521D86C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7CDD6A25-5EE7-4A17-BFDD-6062B521D86C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3582B018-42D8-42F3-8BA4-FA0DFED865F5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3582B018-42D8-42F3-8BA4-FA0DFED865F5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3582B018-42D8-42F3-8BA4-FA0DFED865F5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3582B018-42D8-42F3-8BA4-FA0DFED865F5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{44C4582D-86D5-4181-A82D-6CA894F75DC2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{44C4582D-86D5-4181-A82D-6CA894F75DC2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{44C4582D-86D5-4181-A82D-6CA894F75DC2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{44C4582D-86D5-4181-A82D-6CA894F75DC2}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{3567A995-05A4-4FD2-8B5A-3AD7AF7AB236} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{7CDD6A25-5EE7-4A17-BFDD-6062B521D86C} = {C3DC63B9-0505-453A-8589-15F540B07955}
+		{3582B018-42D8-42F3-8BA4-FA0DFED865F5} = {C3DC63B9-0505-453A-8589-15F540B07955}
+		{44C4582D-86D5-4181-A82D-6CA894F75DC2} = {3D685D16-DB00-461C-9B33-2AF58988ECBB}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {722A0B5A-88A2-45FF-A81E-5EF164E55684}
+	EndGlobalSection
+EndGlobal
