@@ -1,0 +1,14 @@
+﻿services:
+  postgres:
+    image: postgres:latest
+    container_name: urban_postgres
+    environment:
+      POSTGRES_USER: urbanuser
+      POSTGRES_PASSWORD: urbanpassword
+      POSTGRES_DB: urbandb
+    ports:
+      - "5430:5432"
+
+volumes:
+  pgdata:
+    driver: local
