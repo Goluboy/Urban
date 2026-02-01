@@ -1,10 +1,11 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;   
 using Microsoft.AspNetCore.Mvc;
 
 namespace Urban.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class LayoutsController : ControllerBase
     {
         [HttpGet("status")]

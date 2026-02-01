@@ -1,0 +1,27 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: urban_postgres
+    environment:
+      POSTGRES_USER: urbanuser
+      POSTGRES_PASSWORD: urbanpassword
+      POSTGRES_DB: urbandb
+    ports:
+      - "5430:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U urbanuser -d urbandb"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  urban.api:
+    image: ${DOCKER_REGISTRY-}urbanapi
+    build:
+      context: .
+      dockerfile: Urban.API/Dockerfile
+
+volumes:
+  pgdata:
+    driver: local

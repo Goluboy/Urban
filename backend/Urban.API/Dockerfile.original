@@ -12,13 +12,10 @@ EXPOSE 8081
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["Urban.API/Urban.API.csproj", "Urban.API/"]
-COPY ["Urban.Application/Urban.Application.csproj", "Urban.Application/"]
-COPY ["Urban.Domain/Urban.Domain.csproj", "Urban.Domain/"]
-COPY ["Urban.Persistence/Urban.Persistence.csproj", "Urban.Persistence/"]
-RUN dotnet restore "./Urban.API/Urban.API.csproj"
+COPY ["Urban.API.csproj", "."]
+RUN dotnet restore "./Urban.API.csproj"
 COPY . .
-WORKDIR "/src/Urban.API"
+WORKDIR "/src/."
 RUN dotnet build "./Urban.API.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 # This stage is used to publish the service project to be copied to the final stage
