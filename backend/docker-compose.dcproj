@@ -10,6 +10,7 @@
     <DockerServiceName>urban.api</DockerServiceName>
   </PropertyGroup>
   <ItemGroup>
+    <None Include="CSharp Urban.Application\Helpers\GeoLogger.cs" />
     <None Include="docker-compose.override.yml">
       <DependentUpon>docker-compose.yml</DependentUpon>
     </None>

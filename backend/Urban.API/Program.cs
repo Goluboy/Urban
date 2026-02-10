@@ -1,15 +1,17 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Net.Http.Headers;
 using Microsoft.OpenApi.Models;
+using Serilog;
+using Serilog.Events;
 using Swashbuckle.AspNetCore.SwaggerUI;
-using System.Text;
-using Urban.API.Filters;
-using Urban.API.Services;
-using Urban.API.Services.Interfaces;
+using Urban.API.Auth.Filters;
+using Urban.API.Auth.Services;
+using Urban.API.Auth.Services.Interfaces;
+using Urban.Application.Logging;
+using Urban.Application.Logging.Interfaces;
+using Urban.Application.Upgrades;
 using Urban.Persistence;
+using Urban.Persistence.GeoJson;
 
 namespace Urban.API;
 public class Program
@@ -18,7 +20,39 @@ public class Program
     {
         var builder = WebApplication.CreateBuilder(args);
 
-        builder.Services.AddTransient<IJWTService, JWTService>();
+        builder.Logging.ClearProviders();
+
+        Log.Logger = new LoggerConfiguration()
+            .MinimumLevel.Information()
+            .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
+            .MinimumLevel.Override("System", LogEventLevel.Warning)
+            .Enrich.FromLogContext()
+            .WriteTo.Console()
+            .WriteTo.File(
+                path: "logs/log-.txt",
+                rollingInterval: RollingInterval.Day,
+                retainedFileCountLimit: 7)
+            .CreateBootstrapLogger();
+
+        builder.Host.UseSerilog((context, services, configuration) =>
+        {
+            configuration
+                .ReadFrom.Configuration(context.Configuration)
+                .Enrich.FromLogContext()
+                .WriteTo.Console()
+                .WriteTo.File("logs/log-.txt", rollingInterval: RollingInterval.Day);
+        });
+
+        builder.Services.AddScoped<IGeoLogger, GeoLogger>();
+
+        builder.Services.AddTransient<NewLayoutGenerator>();
+        builder.Services.AddTransient<BuildingGenerator>();
+        builder.Services.AddTransient<LayoutManager>();
+        builder.Services.AddTransient<LayoutVisualizer>();
+
+        builder.Services.AddSingleton(new GeoFeatureRepository(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+        builder.Services.AddTransient<IJWTService, JwtService>();
 
         builder.Services.AddDbContext<ApplicationDbContext>(options =>
             options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -96,7 +130,7 @@ public class Program
             });
         }
 
-        await SeedDataService.InitializeAsync(app.Services);
+        await app.Services.InitializeSeedDataAsync();
 
         await app.RunAsync();
     }
