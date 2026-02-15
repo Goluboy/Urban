@@ -1,6 +1,7 @@
 using NetTopologySuite.Geometries;
 using Urban.Application.Helpers;
 using Urban.Application.Logging;
+using Urban.Domain.Geometry;
 
 namespace Urban.Application.Services;
 

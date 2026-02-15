@@ -1,7 +1,7 @@
-﻿using Urban.Domain.Common;
-using NetTopologySuite.Features;
+﻿using NetTopologySuite.Features;
 using NetTopologySuite.Geometries;
 using NetTopologySuite.IO;
+using Urban.Domain.Common;
 
 namespace Urban.Persistence.GeoJson.Services;
 
@@ -14,9 +14,9 @@ public static class GeoJsonParser
 
         return features.Select(f => new GeoFeature
         {
-            Name = f.Attributes?.ContainsKey("name") == true ? f.Attributes["name"].ToString() : null,
             Geometry = (Polygon)f.Geometry,
-            Properties = f.Attributes?.ToDictionary(kvp => kvp.Key, kvp => kvp.Value)
+            Properties = f.Attributes?.GetNames()
+                .ToDictionary(name => name, name => f.Attributes.GetOptionalValue(name))
         }).ToList();
     }
 }

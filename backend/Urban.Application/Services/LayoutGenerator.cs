@@ -2,6 +2,7 @@ using NetTopologySuite.Geometries;
 using Urban.Application.Helpers;
 using Urban.Application.Logging;
 using Urban.Application.Upgrades;
+using Urban.Domain.Geometry;
 
 namespace Urban.Application.Services
 {
@@ -231,7 +232,7 @@ namespace Urban.Application.Services
 				//insolationCalculator.CalculateInsolation(sections);
 
 				// var totalWindows = sections.SelectMany(h => h.Bays).Sum(s => s.Floors);
-				// var insolatedWindows = sections.SelectMany(h => h.Bays).Sum(s => Math.Max(0, s.Floors - s.ResultShadowHeigh / floorHeight));
+				// var insolatedWindows = sections.SelectMany(h => h.Bays).Sum(s => Math.Max(0, s.Floors - s.ResultShadowHeight / floorHeight));
 				var insolation = 0.0;// 1.0 * insolatedWindows / totalWindows;
 				var value = Math.Pow(insolation, 4) * usefulArea;				
 

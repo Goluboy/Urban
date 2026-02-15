@@ -1,6 +1,7 @@
 using System.Text.Json;
 using NetTopologySuite.Geometries;
 using Urban.Application.Helpers;
+using Urban.Domain.Geometry;
 
 namespace Urban.Application.Services
 {
@@ -9,13 +10,13 @@ namespace Urban.Application.Services
         private static Dictionary<string, List<Restriction>> _restrictionsByType = null;
         
         // Distance thresholds for each restriction type (in meters)
-        private static readonly Dictionary<string, double> _distanceThresholds = new()
+        private static readonly Dictionary<string, double> DistanceThresholds = new()
         {
             { "ОКН", 200.0 },
             { "Территория ОКН", 100.0 },
             { "Охранная зона", 50.0 },
             { "Защитная зона", 20.0 },
-            { "Здания", 20 }
+            { "Здания", 20.0 }
         };
         
         public static List<Restriction> GetNearestRestrictions(Geometry geometry)
@@ -29,7 +30,7 @@ namespace Urban.Application.Services
             {
                 var restrictionType = kvp.Key;
                 var restrictions = kvp.Value;
-                var distanceThreshold = _distanceThresholds[restrictionType];
+                var distanceThreshold = DistanceThresholds[restrictionType];
                 
                 var nearbyRestrictions = restrictions
                     .Where(r => geometry.Distance(r.Geometry) < distanceThreshold)

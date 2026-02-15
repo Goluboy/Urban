@@ -2,6 +2,7 @@
 using ProjNet.CoordinateSystems;
 using Urban.Application.Helpers;
 using Urban.Application.Services;
+using Urban.Domain.Geometry;
 
 namespace Urban.API.Layouts.DTOs.DTOGenerators;
 
@@ -26,7 +27,7 @@ public class LayoutsResponseGenerator
                 bays = s.Bays.Select(b => new
                 {
                     polygon = new[] { GetBayCoordinatesWgs84(b, utmSystem) },
-                    shadowHeight = Math.Min(b.ResultShadowHeigh, s.Height)
+                    shadowHeight = Math.Min(b.ResultShadowHeight, s.Height)
                 }).ToArray()
             }).ToArray(),
             insolation = layout.Insolation,

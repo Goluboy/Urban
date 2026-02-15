@@ -1,10 +1,10 @@
 ﻿using NetTopologySuite.Geometries;
+using System.Text.Json;
 
 namespace Urban.Domain.Common;
 
-public class GeoFeature
+public class GeoFeature : BaseEntity
 {
-    public string? Name { get; set; }
     public Polygon Geometry { get; set; } = null!;
     public Dictionary<string, object>? Properties { get; set; }
 }

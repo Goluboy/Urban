@@ -3,6 +3,7 @@ using Urban.Application.Helpers;
 using Urban.Application.Logging;
 using Urban.Application.Logging.Interfaces;
 using Urban.Application.Services;
+using Urban.Domain.Geometry;
 
 namespace Urban.Application.Upgrades
 {

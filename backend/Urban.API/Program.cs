@@ -12,6 +12,7 @@ using Urban.Application.Logging.Interfaces;
 using Urban.Application.Upgrades;
 using Urban.Persistence;
 using Urban.Persistence.GeoJson;
+using Urban.Persistence.GeoJson.Interfaces;
 
 namespace Urban.API;
 public class Program
@@ -50,12 +51,20 @@ public class Program
         builder.Services.AddTransient<LayoutManager>();
         builder.Services.AddTransient<LayoutVisualizer>();
 
-        builder.Services.AddSingleton(new GeoFeatureRepository(builder.Configuration.GetConnectionString("DefaultConnection")));
+        builder.Services.AddSingleton<IGeoFeatureRepository>(sp =>
+            new GeoFeatureRepository(
+                sp.GetRequiredService<IConfiguration>()
+                    .GetConnectionString("DefaultConnection")
+            )
+        );
 
         builder.Services.AddTransient<IJWTService, JwtService>();
 
         builder.Services.AddDbContext<ApplicationDbContext>(options =>
-            options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+            options.UseNpgsql(
+                builder.Configuration.GetConnectionString("DefaultConnection"),
+                npgsqlOptions => npgsqlOptions.UseNetTopologySuite()));
+
 
         builder.Services.AddAuth();
 

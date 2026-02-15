@@ -1,5 +1,6 @@
 using NetTopologySuite.Geometries;
 using Urban.Application.Logging;
+using Urban.Domain.Geometry;
 
 namespace Urban.Application.Services;
 
@@ -154,7 +155,7 @@ public class InsolationCalculator
                 }
             }
             foreach (var bay in sections.SelectMany(s => s.Bays))
-                bay.ResultShadowHeigh = bay.ShadowHeights.OrderBy(h => h).Skip(_positiveThreshold - 1).First();
+                bay.ResultShadowHeight = bay.ShadowHeights.OrderBy(h => h).Skip(_positiveThreshold - 1).First();
         }
     }
 

@@ -1,6 +1,7 @@
 using System.Text.Json;
 using NetTopologySuite.Geometries;
 using Urban.Application.Helpers;
+using Urban.Domain.Geometry;
 
 namespace Urban.Application.Services
 {
