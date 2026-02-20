@@ -1,0 +1,21 @@
+services:
+  postgres:
+    image: postgis/postgis:15-3.4
+    container_name: urban_postgres_persistent
+    environment:
+      POSTGRES_USER: urbanuser
+      POSTGRES_PASSWORD: urbanpassword
+      POSTGRES_DB: urbandb
+    ports:
+      - "5430:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U urbanuser -d urbandb"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+volumes:
+  pgdata:
+    driver: local

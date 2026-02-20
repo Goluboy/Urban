@@ -1,18 +1,23 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Net.Http.Headers;
 using Microsoft.OpenApi.Models;
+using Npgsql;
 using Serilog;
 using Serilog.Events;
 using Swashbuckle.AspNetCore.SwaggerUI;
+using System.Data.Entity;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using Urban.API.Auth.Filters;
 using Urban.API.Auth.Services;
 using Urban.API.Auth.Services.Interfaces;
+using Urban.Application.Handlers;
+using Urban.Application.Interfaces;
 using Urban.Application.Logging;
 using Urban.Application.Logging.Interfaces;
 using Urban.Application.Upgrades;
 using Urban.Persistence;
 using Urban.Persistence.GeoJson;
-using Urban.Persistence.GeoJson.Interfaces;
 
 namespace Urban.API;
 public class Program
@@ -45,30 +50,42 @@ public class Program
         });
 
         builder.Services.AddScoped<IGeoLogger, GeoLogger>();
+        builder.Services.AddScoped<RestrictionHandler>();
 
         builder.Services.AddTransient<NewLayoutGenerator>();
         builder.Services.AddTransient<BuildingGenerator>();
         builder.Services.AddTransient<LayoutManager>();
         builder.Services.AddTransient<LayoutVisualizer>();
 
-        builder.Services.AddSingleton<IGeoFeatureRepository>(sp =>
+        builder.Services.AddScoped<IGeoFeatureRepository>(sp =>
             new GeoFeatureRepository(
-                sp.GetRequiredService<IConfiguration>()
-                    .GetConnectionString("DefaultConnection")
+                sp.GetRequiredService<IConfiguration>().GetConnectionString("DefaultConnection"),
+                sp.GetRequiredService<ApplicationDbContext>()
             )
         );
 
         builder.Services.AddTransient<IJWTService, JwtService>();
+        
+        var dataSourceBuilder = new NpgsqlDataSourceBuilder(builder.Configuration.GetConnectionString("DefaultConnection"));
+        dataSourceBuilder
+            .UseNetTopologySuite()
+            .EnableDynamicJson();
 
-        builder.Services.AddDbContext<ApplicationDbContext>(options =>
-            options.UseNpgsql(
-                builder.Configuration.GetConnectionString("DefaultConnection"),
-                npgsqlOptions => npgsqlOptions.UseNetTopologySuite()));
+        var dataSource = dataSourceBuilder.Build();
 
+        builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseNpgsql(
+            dataSource,
+            o => o.UseNetTopologySuite()));
 
         builder.Services.AddAuth();
 
-        builder.Services.AddControllers();
+        builder.Services.AddControllers()
+            .AddJsonOptions(opts =>
+            {
+                opts.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+                opts.JsonSerializerOptions.NumberHandling = JsonNumberHandling.AllowNamedFloatingPointLiterals;
+                opts.JsonSerializerOptions.MaxDepth = 64;
+            });
 
         if (builder.Environment.IsDevelopment())
         {

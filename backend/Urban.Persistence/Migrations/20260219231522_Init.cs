@@ -1,6 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore.Migrations;
+using NetTopologySuite.Features;
 using NetTopologySuite.Geometries;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -60,9 +60,18 @@ namespace Urban.Persistence.Migrations
                 name: "GeoFeatures",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    Geometry = table.Column<Polygon>(type: "geometry (Polygon, 4326)", nullable: false),
-                    Properties = table.Column<Dictionary<string, object>>(type: "jsonb", nullable: true)
+                    Id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
+                    Geometry = table.Column<Geometry>(type: "geometry", nullable: true),
+                    Attributes = table.Column<IAttributesTable>(type: "jsonb", nullable: true),
+                    GeometryType = table.Column<string>(type: "text", nullable: false),
+                    Discriminator = table.Column<string>(type: "character varying(13)", maxLength: 13, nullable: false),
+                    AddrStreet = table.Column<string>(type: "text", nullable: true),
+                    AddrHouseNumber = table.Column<string>(type: "text", nullable: true),
+                    DateCreated = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    DateUpdated = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    DateDeleted = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {

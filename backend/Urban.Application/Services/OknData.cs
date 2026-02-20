@@ -1,11 +1,12 @@
 using System.Text.Json;
 using NetTopologySuite.Geometries;
 using Urban.Application.Helpers;
+using Urban.Application.Interfaces;
 using Urban.Domain.Geometry;
 
 namespace Urban.Application.Services
 {
-    public static class OknData
+    public class OknData(IGeoFeatureRepository geoFeatureRepository)
     {
         private static Dictionary<string, List<Restriction>> _restrictionsByType = null;
         

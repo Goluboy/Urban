@@ -1,7 +1,8 @@
-using System.ComponentModel;
-using System.Text.Json;
 using Microsoft.AspNetCore.Http.Timeouts;
 using Microsoft.AspNetCore.Mvc;
+using System.ComponentModel;
+using System.Text.Json;
+using Urban.Application.Handlers;
 using Urban.Application.Helpers;
 using Urban.Application.Services;
 
@@ -9,7 +10,7 @@ namespace Urban.API.Layouts;
 
 [ApiController]
 [Route("api/[controller]")]
-public class RestrictionsController(ILogger<RestrictionsController> logger) : ControllerBase
+public class RestrictionsController(ILogger<RestrictionsController> logger, RestrictionHandler restrictionHandler) : ControllerBase
 {
     public class RestrictionsRequest
     {
@@ -19,7 +20,7 @@ public class RestrictionsController(ILogger<RestrictionsController> logger) : Co
 
     [HttpPost]
     [RequestTimeout(300)] // 5 minutes timeout
-    public ActionResult<object> GetRestrictions([FromBody] RestrictionsRequest request)
+    public async Task<ActionResult<object>> GetRestrictions([FromBody] RestrictionsRequest request)
     {
         try
         {
@@ -38,7 +39,7 @@ public class RestrictionsController(ILogger<RestrictionsController> logger) : Co
             var (polygonUtm, utmSystem) = CoordinatesConverter.ToUtm(polygon);
 
             // Get restrictions for the polygon
-            var restrictions = OknData.GetNearestRestrictions(polygonUtm);
+            var restrictions = await restrictionHandler.GetNearestRestrictions(polygonUtm);
                 
             logger.LogInformation("Found {Count} restrictions for the polygon", restrictions.Count);
                 

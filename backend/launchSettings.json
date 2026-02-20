@@ -3,6 +3,8 @@
     "Docker Compose": {
       "commandName": "DockerCompose",
       "commandVersion": "1.0",
+      "composeLaunchAction": "None",
+      "composeLaunchServiceName": "urban.api",
       "serviceActions": {
         "urban.api": "StartDebugging"
       }

@@ -35,6 +35,5 @@ public class Section
         Residents = (int)Math.Round(AppartmetsArea / 30);
         KindergardenPlaces = Residents * 50 / 1000;
         SchoolPlaces = Residents * 115 / 1000;
-        Bays = SectionGenerator.SplitPolygonToBays(Polygon, Floors);
     }
 }

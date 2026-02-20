@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NetTopologySuite.Geometries;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
+using Urban.Domain.Geometry.Data.ValueObjects;
 using Urban.Persistence;
 
 #nullable disable
@@ -14,8 +15,8 @@ using Urban.Persistence;
 namespace Urban.Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260215001757_Init")]
-    partial class Init
+    [Migration("20260220020007_UpdateGeo")]
+    partial class UpdateGeo
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -228,18 +229,66 @@ namespace Urban.Persistence.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasDefaultValueSql("gen_random_uuid()");
 
-                    b.Property<Polygon>("Geometry")
+                    b.Property<DateTimeOffset>("DateCreated")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset?>("DateDeleted")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset?>("DateUpdated")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Discriminator")
                         .IsRequired()
-                        .HasColumnType("geometry (Polygon, 4326)");
+                        .HasMaxLength(13)
+                        .HasColumnType("character varying(13)");
+
+                    b.Property<Geometry>("Geometry")
+                        .HasColumnType("geometry");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
 
                     b.Property<Dictionary<string, object>>("Properties")
                         .HasColumnType("jsonb");
 
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
                     b.HasKey("Id");
 
                     b.ToTable("GeoFeatures");
+
+                    b.HasDiscriminator().HasValue("GeoFeature");
+
+                    b.UseTphMappingStrategy();
+                });
+
+            modelBuilder.Entity("Urban.Domain.Geometry.Data.BuildingBASE", b =>
+                {
+                    b.HasBaseType("Urban.Domain.Common.GeoFeature");
+
+                    b.Property<string>("AddrHouseNumber")
+                        .HasColumnType("text");
+
+                    b.Property<string>("AddrStreet")
+                        .HasColumnType("text");
+
+                    b.HasDiscriminator().HasValue("BuildingBASE");
+                });
+
+            modelBuilder.Entity("Urban.Domain.Geometry.Data.Heritage", b =>
+                {
+                    b.HasBaseType("Urban.Domain.Common.GeoFeature");
+
+                    b.Property<RenderOptions>("Options")
+                        .IsRequired()
+                        .HasColumnType("jsonb");
+
+                    b.HasDiscriminator().HasValue("Heritage");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
