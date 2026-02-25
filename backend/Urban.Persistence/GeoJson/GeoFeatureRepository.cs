@@ -129,7 +129,7 @@ public class GeoFeatureRepository(string? connectionString, ApplicationDbContext
         return await GetRestrictionsByType(type.ToString(), ct);
     }
 
-    public async Task<IList<Restriction>> GetNearestRestrictions(Geometry geometry, string restrictionType, double distanceThreshold, CancellationToken ct = default)
+    public async Task<IList<Restriction>> GetNearestRestrictions(Geometry geometry, RestrictionType restrictionType, double distanceThreshold, CancellationToken ct = default)
     {
         if (geometry == null)
             throw new ArgumentNullException(nameof(geometry));
@@ -166,7 +166,7 @@ public class GeoFeatureRepository(string? connectionString, ApplicationDbContext
         var geomParam = new NpgsqlParameter("geom", NpgsqlDbType.Bytea) { Value = geomBytes };
         cmd.Parameters.Add(geomParam);
         cmd.Parameters.AddWithValue("srid", geometry.SRID);
-        cmd.Parameters.AddWithValue("type", restrictionType ?? string.Empty);
+        cmd.Parameters.AddWithValue("type", restrictionType.ToString());
         cmd.Parameters.AddWithValue("distance", distanceThreshold);
 
         await using var reader = await cmd.ExecuteReaderAsync(ct);

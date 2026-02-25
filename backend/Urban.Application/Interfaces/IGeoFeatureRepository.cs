@@ -10,7 +10,7 @@ public interface IGeoFeatureRepository
 {
     public Task<List<Restriction>> GetRestrictionsByType(string type, CancellationToken ct = default);
     public Task<List<Restriction>> GetRestrictionsByType(RestrictionType type, CancellationToken ct = default);
-    public Task<IList<Restriction>> GetNearestRestrictions(Geometry geometry, string restrictionType, double distanceThreshold, CancellationToken ct = default);
+    public Task<IList<Restriction>> GetNearestRestrictions(Geometry geometry, RestrictionType restrictionType, double distanceThreshold, CancellationToken ct = default);
     public Task<int> BulkInsertAsync(string geoJson, string type, CancellationToken ct = default);
     Task ImportFromFileAsync(IFormFile file, string type, CancellationToken ct = default);
 }

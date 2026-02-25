@@ -81,6 +81,15 @@ public class Program
 
         builder.Services.AddAuth();
 
+        // Add permissive CORS policy
+        builder.Services.AddCors(options =>
+        {
+            options.AddPolicy("AllowAll", policy => policy
+                .AllowAnyOrigin()
+                .AllowAnyMethod()
+                .AllowAnyHeader());
+        });
+
         builder.Services.AddControllers()
             .AddJsonOptions(opts =>
             {
@@ -139,6 +148,9 @@ public class Program
         }
 
         app.UseRouting();
+
+        // Enable CORS globally
+        app.UseCors("AllowAll");
 
         app.UseAuthentication();
         app.UseAuthorization();
