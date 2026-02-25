@@ -1,6 +1,7 @@
 ﻿using NetTopologySuite.Geometries;
 using Urban.Application.Interfaces;
 using Urban.Domain.Geometry;
+using Urban.Domain.Geometry.Data;
 
 namespace Urban.Application.Handlers;
 
@@ -9,11 +10,11 @@ public class RestrictionHandler(IGeoFeatureRepository geoFeatureRepository)
     // Distance thresholds for each restriction type (in meters)
     private static readonly Dictionary<string, double> DistanceThresholds = new()
     {
-        { "ОКН", 200.0 },
-        { "Территория ОКН", 100.0 },
-        { "Охранная зона", 50.0 },
-        { "Защитная зона", 20.0 },
-        { "Здания", 20.0 }
+        { "Restriction", 200.0 },
+        { "HeritageBorder", 100.0 },
+        { "HeritageZone", 50.0 },
+        { "ProtectionZone", 20.0 },
+        { "Buildings", 20.0 }
     };
 
     public async Task<IList<Restriction>> GetNearestRestrictions(Geometry geometry, CancellationToken ct = default)

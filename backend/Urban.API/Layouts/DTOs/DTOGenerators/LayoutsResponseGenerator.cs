@@ -10,12 +10,15 @@ public class LayoutsResponseGenerator
 {
     public static object[] CreateLayoutsResponse(BlockLayout[] layouts, ProjectedCoordinateSystem utmSystem)
     {
+        if (layouts == null || layouts.Length == 0)
+            return Array.Empty<object>();
+
         return layouts.Select(layout => new
         {
             name = layout.Name,
-            sections = layout.Sections.Select(s => new
+            sections = (layout.Sections ?? Array.Empty<Section>()).Select(s => new
             {
-                polygon = s.Polygon.ToDoubleArrayWgs84(utmSystem),
+                polygon = s.Polygon != null ? s.Polygon.ToDoubleArrayWgs84(utmSystem) : Array.Empty<double[][]>(),
                 floors = s.Floors,
                 height = s.Height,
                 appartmetsArea = s.AppartmetsArea,
@@ -24,7 +27,7 @@ public class LayoutsResponseGenerator
                 residents = s.Residents,
                 kindergardenPlaces = s.KindergardenPlaces,
                 schoolPlaces = s.SchoolPlaces,
-                bays = s.Bays.Select(b => new
+                bays = (s.Bays ?? Array.Empty<Bay>()).Select(b => new
                 {
                     polygon = new[] { GetBayCoordinatesWgs84(b, utmSystem) },
                     shadowHeight = Math.Min(b.ResultShadowHeight, s.Height)
@@ -35,11 +38,13 @@ public class LayoutsResponseGenerator
             builtUpArea = layout.BuiltUpArea,
             usefulArea = layout.UsefulArea,
             value = layout.Value,
-            streets = layout.Streets?.Select(street =>
-            {
-                var wgs84Street = CoordinatesConverter.FromUtm(street, utmSystem);
-                return ((LineString)wgs84Street).Coordinates.Select(c => new[] { c.X, c.Y }).ToArray();
-            }).SelectMany(x => x).ToArray() ?? Array.Empty<double[]>()
+            streets = (layout.Streets ?? Array.Empty<LineString>())
+                .SelectMany(street =>
+                {
+                    var wgs84Street = CoordinatesConverter.FromUtm(street, utmSystem);
+                    return ((LineString)wgs84Street).Coordinates.Select(c => new[] { c.X, c.Y }).ToArray();
+                })
+                .ToArray()
         }).ToArray();
     }
 

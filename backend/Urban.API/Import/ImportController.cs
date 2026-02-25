@@ -42,6 +42,6 @@ public class ImportController(IGeoFeatureRepository repo) : ControllerBase
     [HttpGet]
     public async Task<ActionResult<List<GeoFeature>>> Get([FromQuery] string type, CancellationToken ct)
     {
-        return Ok(await repo.GetGeoFeaturesByType(type, ct));
+        return Ok(await repo.GetRestrictionsByType(type, ct));
     }
 }

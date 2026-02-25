@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using System.Data.Entity;
+using Microsoft.AspNetCore.Http;
 using NetTopologySuite.Geometries;
 using NetTopologySuite.IO;
 using Npgsql;
@@ -8,19 +9,20 @@ using System.Text.Json.Serialization;
 using Urban.Application.Interfaces;
 using Urban.Domain.Common;
 using Urban.Domain.Geometry;
+using Urban.Domain.Geometry.Data;
 using Urban.Persistence.GeoJson.Services;
 
 namespace Urban.Persistence.GeoJson;
 
 /// <summary>
-/// Repository used for bulk operations with data using Npgsql Binary
+/// Repository used for bulk operations with data using Npgsql
 /// </summary>
 /// <param name="connectionString"></param>
 public class GeoFeatureRepository(string? connectionString, ApplicationDbContext context) : IGeoFeatureRepository
 {
-    public async Task<List<GeoFeature>> GetGeoFeaturesByType(string type, CancellationToken ct = default)
+    public async Task<List<Restriction>> GetRestrictionsByType(string type, CancellationToken ct = default)
     {
-        var results = new List<GeoFeature>();
+        var results = new List<Restriction>();
 
         await using var conn = new NpgsqlConnection(connectionString);
         await conn.OpenAsync(ct);
@@ -37,13 +39,13 @@ public class GeoFeatureRepository(string? connectionString, ApplicationDbContext
                 "DateDeleted",
                 "UserId",
                 "IsDeleted"
-            FROM "GeoFeatures"
+            FROM "Restrictions"
             WHERE "Discriminator" = @type
               AND ("IsDeleted" IS NULL OR "IsDeleted" = FALSE);
         """;
 
         await using var cmd = new NpgsqlCommand(sql, conn);
-        cmd.Parameters.AddWithValue("type", type ?? string.Empty);
+        cmd.Parameters.AddWithValue("type", type);
 
         await using var reader = await cmd.ExecuteReaderAsync(ct);
 
@@ -52,7 +54,7 @@ public class GeoFeatureRepository(string? connectionString, ApplicationDbContext
 
         while (await reader.ReadAsync(ct))
         {
-            var gf = new GeoFeature();
+            var gf = new Restriction();
 
             // Id
             if (!reader.IsDBNull(0))
@@ -95,7 +97,10 @@ public class GeoFeatureRepository(string? connectionString, ApplicationDbContext
 
             // Discriminator
             if (!reader.IsDBNull(4))
-                gf.Discriminator = reader.GetFieldValue<string>(4)!;
+            {
+                var discriminatorText = reader.GetFieldValue<string>(4)!;
+                gf.Discriminator = Enum.Parse<RestrictionType>(discriminatorText, ignoreCase: true);
+            }
 
             // Dates and other metadata
             if (!reader.IsDBNull(5))
@@ -118,7 +123,12 @@ public class GeoFeatureRepository(string? connectionString, ApplicationDbContext
 
         return results;
     }
-    
+
+    public async Task<List<Restriction>> GetRestrictionsByType(RestrictionType type, CancellationToken ct = default)
+    {
+        return await GetRestrictionsByType(type.ToString(), ct);
+    }
+
     public async Task<IList<Restriction>> GetNearestRestrictions(Geometry geometry, string restrictionType, double distanceThreshold, CancellationToken ct = default)
     {
         if (geometry == null)
@@ -136,7 +146,7 @@ public class GeoFeatureRepository(string? connectionString, ApplicationDbContext
                 "Properties"::text AS properties,
                 COALESCE(("Properties"->>'name'), ("Properties"->>'hintContent'), '') AS name,
                 "Discriminator"
-            FROM "GeoFeatures"
+            FROM "Restrictions"
             WHERE "Discriminator" = @type
               AND ("IsDeleted" IS NULL OR "IsDeleted" = FALSE)
               AND ST_Distance("Geometry", ST_SetSRID(ST_GeomFromWKB(@geom), @srid)) < @distance
@@ -146,6 +156,10 @@ public class GeoFeatureRepository(string? connectionString, ApplicationDbContext
 
         await using var cmd = new NpgsqlCommand(sql, conn);
 
+        if (geometry.SRID != 4326)
+            geometry.SRID = 4326;
+
+        // Write geometry to WKB bytes
         var wkbWriter = new WKBWriter();
         var geomBytes = wkbWriter.Write(geometry);
 
@@ -202,14 +216,6 @@ public class GeoFeatureRepository(string? connectionString, ApplicationDbContext
                 }
             }
 
-            if (string.IsNullOrEmpty(name) && !reader.IsDBNull(3))
-                name = reader.GetFieldValue<string>(3) ?? string.Empty;
-
-            r.Name = name;
-
-            if (!reader.IsDBNull(4))
-                r.RestrictionType = reader.GetFieldValue<string>(4)!;
-
             results.Add(r);
         }
 
@@ -237,7 +243,7 @@ public class GeoFeatureRepository(string? connectionString, ApplicationDbContext
                        FROM data
                    ) AS f
                )
-               INSERT INTO "GeoFeatures" ("Id", "Geometry", "Properties", "Discriminator", "DateCreated", "DateUpdated", "DateDeleted", "UserId", "IsDeleted")
+               INSERT INTO "Restrictions" ("Id", "Geometry", "Properties", "Discriminator", "DateCreated", "DateUpdated", "DateDeleted", "UserId", "IsDeleted")
                SELECT 
                    id,
                    geom::geometry(Geometry, 4326),

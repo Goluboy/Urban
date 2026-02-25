@@ -2,28 +2,34 @@
 using Urban.Application.Helpers;
 using Urban.Application.Logging;
 using Urban.Application.Logging.Interfaces;
+using Urban.Application.OldServices;
 using Urban.Application.Services;
+using Urban.Domain.Common;
 using Urban.Domain.Geometry;
 
 namespace Urban.Application.Upgrades
 {
-    public class NewLayoutGenerator(BuildingGenerator buildingGenerator, LayoutManager layoutManager, IGeoLogger geoLogger, LayoutVisualizer visualizer)
+    public class NewLayoutGenerator(
+        BuildingGenerator buildingGenerator, 
+        LayoutManager layoutManager, 
+        IGeoLogger geoLogger, 
+        LayoutVisualizer visualizer,
+        LayoutRestrictions layoutRestrictions)
     {
         public const double FloorHeight = 3.2;
 
 
-        private static readonly LayoutRestrictions.RestrictionType[] EnabledRestrictions = new[]
+        private static readonly RestrictionType[] EnabledRestrictions = new[]
         {
-            LayoutRestrictions.RestrictionType.CulturalHeritage_site,
-            LayoutRestrictions.RestrictionType.CulturalHeritage_area,
-            LayoutRestrictions.RestrictionType.Protection_zone,
-            LayoutRestrictions.RestrictionType.Buffer_zone,
-            LayoutRestrictions.RestrictionType.Buildings,
-
-            LayoutRestrictions.RestrictionType.Roads
+            RestrictionType.CulturalHeritage_site,
+            RestrictionType.CulturalHeritage_area,
+            RestrictionType.Protection_zone,
+            RestrictionType.Buffer_zone,
+            RestrictionType.Buildings,
+            RestrictionType.Roads
         };
 
-        public BlockLayout[] GenerateLayouts(Polygon plot,
+        public async Task<BlockLayout[]> GenerateLayouts(Polygon plot,
             int? maxFloors = null,
             double? grossFloorArea = null)
         {
@@ -47,7 +53,7 @@ namespace Urban.Application.Upgrades
                 const int effectiveMaxFloors = 9;
 
                 // Get restrictions
-                var restrictions = LayoutRestrictions.GetRestrictionsWithinDistance(plot, EnabledRestrictions).ToArray();
+                var restrictions = (await layoutRestrictions.GetRestrictionsWithinDistance(plot, EnabledRestrictions)).ToArray();
 
                 // Show restrictions if any
                 if (restrictions.Any())

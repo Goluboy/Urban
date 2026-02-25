@@ -39,5 +39,4 @@ public class GeoFeature : BaseEntity, IFeature
     public IAttributesTable? Attributes { get; set; }
     [NotMapped]
     public GeometryType GeometryType { get; set; }
-    public string Discriminator { get; set; }
 }

@@ -8,26 +8,29 @@ namespace Urban.Persistence;
 
 public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : IdentityDbContext(options)
 {
-    public DbSet<GeoFeature> GeoFeatures { get; set; }
-    public DbSet<Heritage> Heritages { get; set; }
-    public DbSet<BuildingBASE> BuildingsBase { get; set; }
+    public DbSet<Restriction> Restrictions { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
 
-        modelBuilder.Entity<GeoFeature>(entity =>
+        modelBuilder.Entity<Restriction>(entity =>
         {
-            entity
+            {
+                entity
                 .Property("Properties")
                 .HasColumnType("jsonb");
-        });
 
-        modelBuilder.Entity<Heritage>(entity => 
-            entity
-                .Property("Options")
-                .HasColumnType("jsonb")
-        );
+                entity
+                    .Property("Options")
+                    .HasColumnType("jsonb");
+
+                entity.Property(r => r.Discriminator)
+                    .HasConversion<string>()
+                    .HasColumnType("text")
+                    .IsRequired();
+            }
+        });
     }
 
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)

@@ -20,7 +20,7 @@ public class LayoutsController(NewLayoutGenerator newLayoutGenerator, ILogger<La
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
     [RequestTimeout(300)] // 5 minutes
-    public ActionResult<LayoutsResponse> GenerateLayouts([FromBody] GenerateLayoutRequest request)
+    public async Task<ActionResult<LayoutsResponse>> GenerateLayouts([FromBody] GenerateLayoutRequest request)
     {
         var sw = Stopwatch.StartNew();
         var remoteIp = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
@@ -61,7 +61,7 @@ public class LayoutsController(NewLayoutGenerator newLayoutGenerator, ILogger<La
             // Convert polygon to UTM
             var (polygonUtm, utmSystem) = CoordinatesConverter.ToUtm(polygon);
 
-            var layouts = newLayoutGenerator.GenerateLayouts((Polygon)polygonUtm, request.MaxFloors, request.GrossFloorArea);
+            var layouts = await newLayoutGenerator.GenerateLayouts((Polygon)polygonUtm, request.MaxFloors, request.GrossFloorArea);
 
 
             // Get the HTML logs from the geometry logger

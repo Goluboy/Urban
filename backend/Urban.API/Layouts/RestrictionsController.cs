@@ -4,7 +4,6 @@ using System.ComponentModel;
 using System.Text.Json;
 using Urban.Application.Handlers;
 using Urban.Application.Helpers;
-using Urban.Application.Services;
 
 namespace Urban.API.Layouts;
 
@@ -45,8 +44,7 @@ public class RestrictionsController(ILogger<RestrictionsController> logger, Rest
                 
             // Convert restrictions to double[][][] format
             var restrictionsData = restrictions.Select(r => new {
-                name = r.Name,
-                restrictionType = r.RestrictionType,
+                restrictionType = r.Discriminator,
                 coordinates = GeoJsonUtils.ConvertGeometryToCoordinates(CoordinatesConverter.FromUtm(r.Geometry, utmSystem))
             }).ToArray();
 

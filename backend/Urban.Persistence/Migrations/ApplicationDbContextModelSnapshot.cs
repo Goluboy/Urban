@@ -222,7 +222,7 @@ namespace Urban.Persistence.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("Urban.Domain.Common.GeoFeature", b =>
+            modelBuilder.Entity("Urban.Domain.Geometry.Data.Restriction", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -240,14 +240,16 @@ namespace Urban.Persistence.Migrations
 
                     b.Property<string>("Discriminator")
                         .IsRequired()
-                        .HasMaxLength(13)
-                        .HasColumnType("character varying(13)");
+                        .HasColumnType("text");
 
                     b.Property<Geometry>("Geometry")
                         .HasColumnType("geometry");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
+
+                    b.Property<RenderOptions>("Options")
+                        .HasColumnType("jsonb");
 
                     b.Property<Dictionary<string, object>>("Properties")
                         .HasColumnType("jsonb");
@@ -257,35 +259,7 @@ namespace Urban.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("GeoFeatures");
-
-                    b.HasDiscriminator().HasValue("GeoFeature");
-
-                    b.UseTphMappingStrategy();
-                });
-
-            modelBuilder.Entity("Urban.Domain.Geometry.Data.BuildingBASE", b =>
-                {
-                    b.HasBaseType("Urban.Domain.Common.GeoFeature");
-
-                    b.Property<string>("AddrHouseNumber")
-                        .HasColumnType("text");
-
-                    b.Property<string>("AddrStreet")
-                        .HasColumnType("text");
-
-                    b.HasDiscriminator().HasValue("BuildingBASE");
-                });
-
-            modelBuilder.Entity("Urban.Domain.Geometry.Data.Heritage", b =>
-                {
-                    b.HasBaseType("Urban.Domain.Common.GeoFeature");
-
-                    b.Property<RenderOptions>("Options")
-                        .IsRequired()
-                        .HasColumnType("jsonb");
-
-                    b.HasDiscriminator().HasValue("Heritage");
+                    b.ToTable("Restrictions");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
