@@ -13,7 +13,6 @@ namespace Urban.Application.Upgrades
         private readonly BitArray _cells;
         private readonly int _xCells;
         private readonly int _yCells;
-        private readonly GeometryFactory _geometryFactory;
 
         public Grid(Polygon bounds, double cellSize = 20)
         {
@@ -32,7 +31,6 @@ namespace Urban.Application.Upgrades
 
             // Start with all cells as restricted (false)
             _cells = new BitArray(_xCells * _yCells, false);
-            _geometryFactory = new GeometryFactory();
         }
 
         // Public properties
@@ -72,7 +70,7 @@ namespace Urban.Application.Upgrades
         /// <summary>
         /// Step 2: Subtract restrictions - mark intersecting cells as restricted (false)
         /// </summary>
-        public void SubtractRestrictions(IEnumerable<Polygon> restrictions)
+        public void SubtractRestrictions(List<Polygon?> restrictions)
         {
             foreach (var restriction in restrictions)
             {

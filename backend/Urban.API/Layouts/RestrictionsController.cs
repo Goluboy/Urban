@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Http.Timeouts;
 using Microsoft.AspNetCore.Mvc;
-using System.ComponentModel;
 using System.Text.Json;
+using Urban.API.Layouts.DTOs;
 using Urban.Application.Handlers;
 using Urban.Application.Helpers;
 
@@ -11,12 +11,6 @@ namespace Urban.API.Layouts;
 [Route("api/[controller]")]
 public class RestrictionsController(ILogger<RestrictionsController> logger, RestrictionHandler restrictionHandler) : ControllerBase
 {
-    public class RestrictionsRequest
-    {
-        [DefaultValue(@"{""type"":""Polygon"",""coordinates"":[[[60.579,56.811],[60.581,56.812],[60.583,56.811],[60.582,56.810],[60.579,56.811]]]}")]
-        public JsonElement Plot { get; set; }
-    }
-
     [HttpPost]
     [RequestTimeout(300)] // 5 minutes timeout
     public async Task<ActionResult<object>> GetRestrictions([FromBody] RestrictionsRequest request)

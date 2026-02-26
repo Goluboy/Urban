@@ -2,7 +2,7 @@ using NetTopologySuite.Geometries;
 using Urban.Application.Logging;
 using Urban.Domain.Geometry;
 
-namespace Urban.Application.Services;
+namespace Urban.Application.OldServices;
 
 public class InsolationCalculator
 {

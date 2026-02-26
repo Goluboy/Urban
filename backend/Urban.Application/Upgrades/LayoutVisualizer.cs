@@ -30,24 +30,6 @@ namespace Urban.Application.Upgrades
             geoLogger.LogSvg(title, logItems.ToArray());
         }
 
-        public void VisualizeUnitedBlocks(Grid grid, Polygon plot, List<Polygon> blocks, string title)
-        {
-            var logItems = new List<(object geo, string style)>
-            {
-                ((object)plot, "stroke='green' stroke-width='1' fill='none'")
-            };
-
-            for (int i = 0; i < blocks.Count; i++)
-            {
-                string fillColor = GetRainbowColor(i + 1);
-                string strokeColor = "#000000";
-
-                logItems.Add(((object)blocks[i],
-                    $"fill='{fillColor}' stroke='{strokeColor}' stroke-width='1.0' opacity='1.0'"));
-            }
-
-            geoLogger.LogSvg(title, logItems.ToArray());
-        }
 
         public void VisualizeAvailableCells(Grid grid, Polygon plot, string title)
         {
@@ -114,39 +96,6 @@ namespace Urban.Application.Upgrades
             geoLogger.LogSvg(title, logItems.ToArray());
         }
 
-        public void VisualizeLayout(BlockLayout layout, int layoutNumber, string title)
-        {
-            var sectionPolygons = layout.Sections.Select(s => s.Polygon).ToArray();
-            var parkPolygons = layout.Parks ?? Array.Empty<Polygon>();
-            var streetLines = layout.Streets ?? Array.Empty<LineString>();
-
-            var logItems = new List<(object geo, string style)>
-            {
-                ((object)layout.Block, "stroke='green' stroke-width='1' fill='none'")
-            };
-
-            foreach (var street in streetLines)
-            {
-                logItems.Add(((object)street, Styles.Street));
-            }
-
-            foreach (var section in layout.Sections)
-            {
-                float intensity = Math.Min(1.0f, section.Floors / 20.0f);
-                int blueValue = (int)(100 + 155 * intensity);
-                string buildingColor = $"#0000{blueValue:X2}";
-
-                logItems.Add(((object)section.Polygon,
-                    $"fill='{buildingColor}' stroke='#000033' stroke-width='0.5'"));
-            }
-
-            foreach (var park in parkPolygons)
-            {
-                logItems.Add(((object)park, Styles.Parks));
-            }
-
-            geoLogger.LogSvg($"{title} {layoutNumber}", logItems.ToArray());
-        }
         public void VisualizeLayout(BlockLayout layout, int layoutNumber, string title, List<BuildingDisplayData> displayData = null)
         {
             var sectionPolygons = layout.Sections.Select(s => s.Polygon).ToArray();

@@ -168,7 +168,7 @@ namespace Urban.Application.Upgrades
 
                         // Update the display data with final floor counts
                         foreach (var section in sections)
-                        {
+                        {    
                             var displayItem = displayData.FirstOrDefault(d => d.Polygon.Equals(section.Polygon));
                             if (displayItem != null)
                             {

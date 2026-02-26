@@ -19,6 +19,7 @@ using Urban.Application.Services;
 using Urban.Application.Upgrades;
 using Urban.Persistence;
 using Urban.Persistence.GeoJson;
+using Urban.Persistence.GeoJson.Services;
 
 namespace Urban.API;
 public class Program
@@ -58,11 +59,13 @@ public class Program
         builder.Services.AddTransient<LayoutManager>();
         builder.Services.AddTransient<LayoutVisualizer>();
         builder.Services.AddTransient<LayoutRestrictions>();
+        builder.Services.AddTransient<IGeoJsonParser, GeoJsonParser>();
 
         builder.Services.AddScoped<IGeoFeatureRepository>(sp =>
             new GeoFeatureRepository(
                 sp.GetRequiredService<IConfiguration>().GetConnectionString("DefaultConnection"),
-                sp.GetRequiredService<ApplicationDbContext>()
+                sp.GetRequiredService<ApplicationDbContext>(),
+                sp.GetRequiredService<IGeoJsonParser>()
             )
         );
 

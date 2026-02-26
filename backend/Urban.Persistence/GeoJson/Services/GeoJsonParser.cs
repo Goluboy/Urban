@@ -4,14 +4,15 @@ using NetTopologySuite.IO;
 using Newtonsoft.Json;
 using System.Text.Json;
 using Urban.Application.Helpers;
+using Urban.Application.Interfaces;
 using Urban.Domain.Common;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Urban.Persistence.GeoJson.Services;
 
-public static class GeoJsonParser
+public class GeoJsonParser : IGeoJsonParser
 {
-    public static List<GeoFeature> ParseGeoJson(string geoJson)
+    public List<GeoFeature> ParseGeoJson(string geoJson)
     {
         try
         {
@@ -26,7 +27,7 @@ public static class GeoJsonParser
         }
     }
 
-    public static List<GeoFeature> ReadGeoJson(string json)
+    public List<GeoFeature> ReadGeoJson(string json)
     {
         var list = new List<GeoFeature>();
         var root = JsonSerializer.Deserialize<JsonElement>(json);

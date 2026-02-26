@@ -14,9 +14,8 @@ public class ImportController(IGeoFeatureRepository repo) : ControllerBase
     public async Task<IActionResult> ImportGeoJsonFromBody([FromBody] JsonElement geoJsonRoot, string type, CancellationToken ct)
     {
         var geoJson = geoJsonRoot.GetRawText();
-        var features = GeoJsonParser.ParseGeoJson(geoJson);
         await repo.BulkInsertAsync(geoJson, type, ct);
-        return Ok($"{features.Count} features imported.");
+        return Ok("features imported.");
     }
 
     [RequestSizeLimit(50 * 1024 * 1024)] // 50 MB
@@ -31,12 +30,6 @@ public class ImportController(IGeoFeatureRepository repo) : ControllerBase
 
         await repo.ImportFromFileAsync(geoJsonRoot, type, ct);
         return Ok("features imported.");
-    }
-
-    [HttpDelete("emptygeotable")]
-    public async Task<IActionResult> EmptyGeoTable(CancellationToken ct)
-    {
-        return Ok("Nothing.");
     }
 
     [HttpGet]
