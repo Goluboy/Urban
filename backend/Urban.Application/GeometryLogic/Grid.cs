@@ -1,7 +1,7 @@
-﻿using NetTopologySuite.Geometries;
-using System.Collections;
+﻿using System.Collections;
+using NetTopologySuite.Geometries;
 
-namespace Urban.Application.Upgrades
+namespace Urban.Application.GeometryLogic
 {
     public class Grid
     {
@@ -58,7 +58,7 @@ namespace Urban.Application.Upgrades
                     if (area.Contains(cellPolygon) || area.Intersects(cellPolygon))
                     {
                         var intersection = area.Intersection(cellPolygon);
-                        if (intersection.Area > (_cellSize * _cellSize * 0.5))
+                        if (intersection.Area > _cellSize * _cellSize * 0.5)
                         {
                             _cells[GetCellIndex(col, row)] = true;
                         }
@@ -932,8 +932,8 @@ namespace Urban.Application.Upgrades
             {
                 if (obj is Edge other)
                 {
-                    return (Start.Equals(other.Start) && End.Equals(other.End)) ||
-                           (Start.Equals(other.End) && End.Equals(other.Start));
+                    return Start.Equals(other.Start) && End.Equals(other.End) ||
+                           Start.Equals(other.End) && End.Equals(other.Start);
                 }
                 return false;
             }
@@ -1159,7 +1159,7 @@ namespace Urban.Application.Upgrades
             }
 
             // Check aspect ratio of resulting blocks
-            double blockAspect = (width / cols) / (height / rows);
+            double blockAspect = width / cols / (height / rows);
 
             // Adjust to improve aspect ratio if needed
             if (blockAspect > targetAspectRatio * 1.5 || blockAspect < 1.0 / (targetAspectRatio * 1.5))
@@ -1175,7 +1175,7 @@ namespace Urban.Application.Upgrades
                         if (c * r < Math.Ceiling(targetBlocks * 0.7) || c * r > Math.Ceiling(targetBlocks * 1.5))
                             continue;
 
-                        double aspect = (width / c) / (height / r);
+                        double aspect = width / c / (height / r);
                         double aspectScore = Math.Abs(aspect - targetAspectRatio) / targetAspectRatio;
                         double countScore = Math.Abs(c * r - targetBlocks) / (double)targetBlocks;
 
@@ -1248,7 +1248,7 @@ namespace Urban.Application.Upgrades
                         double distance = Math.Sqrt(dx * dx + dy * dy);
 
                         // Prefer merges that create blocks closer to target size
-                        double sizeScore = Math.Abs(mergedSize - maxCells * 0.8) / (double)maxCells;
+                        double sizeScore = Math.Abs(mergedSize - maxCells * 0.8) / maxCells;
 
                         double score = distance * 0.5 + sizeScore * 0.5;
 

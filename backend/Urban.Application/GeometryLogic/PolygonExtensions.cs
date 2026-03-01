@@ -1,6 +1,6 @@
 using NetTopologySuite.Geometries;
 
-namespace Urban.Application.Helpers
+namespace Urban.Application.GeometryLogic
 {
     public static class GeometryExtensions
     {

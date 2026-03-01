@@ -1,7 +1,8 @@
 using NetTopologySuite.Geometries;
 using Urban.Application.Helpers;
+using Urban.Application.LayoutLogic;
 
-namespace Urban.Application.OldServices;
+namespace Urban.Application.GeometryLogic;
 
 public static class EntryPointGenerator
 {

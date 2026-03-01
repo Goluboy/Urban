@@ -2,14 +2,15 @@ using Microsoft.AspNetCore.Http.Timeouts;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 using Urban.API.Layouts.DTOs;
+using Urban.Application.GeometryLogic;
 using Urban.Application.Handlers;
-using Urban.Application.Helpers;
+using Urban.Application.LayoutLogic;
 
 namespace Urban.API.Layouts;
 
 [ApiController]
 [Route("api/[controller]")]
-public class RestrictionsController(ILogger<RestrictionsController> logger, RestrictionHandler restrictionHandler) : ControllerBase
+public class RestrictionsController(ILogger<RestrictionsController> logger, RestrictionsHandler restrictionHandler) : ControllerBase
 {
     [HttpPost]
     [RequestTimeout(300)] // 5 minutes timeout
@@ -34,7 +35,7 @@ public class RestrictionsController(ILogger<RestrictionsController> logger, Rest
             //polygonUtm.SRID = 4326;
 
             // Get restrictions for the polygon
-            var restrictions = await restrictionHandler.GetNearestRestrictions(polygonUtm);
+            var restrictions = await restrictionHandler.GetRestrictionsWithinDistance(polygonUtm);
                 
             logger.LogInformation("Found {Count} restrictions for the polygon", restrictions.Count);
                 

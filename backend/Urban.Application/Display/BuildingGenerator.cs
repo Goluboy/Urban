@@ -1,8 +1,8 @@
 ﻿using NetTopologySuite.Geometries;
-using Urban.Application.Services;
+using Urban.Application.GeometryLogic;
 using Urban.Domain.Geometry;
 
-namespace Urban.Application.Upgrades
+namespace Urban.Application.Display
 {
     public class BuildingGenerator
     {

@@ -1,9 +1,8 @@
 ﻿using NetTopologySuite.Geometries;
-using Urban.Application.OldServices;
-using Urban.Application.Services;
+using Urban.Application.GeometryLogic;
 using Urban.Domain.Geometry;
 
-namespace Urban.Application.Upgrades
+namespace Urban.Application.LayoutLogic
 {
     public class LayoutManager
     {

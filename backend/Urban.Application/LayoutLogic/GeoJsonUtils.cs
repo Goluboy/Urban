@@ -1,8 +1,9 @@
 using System.Text.Json;
 using NetTopologySuite.Geometries;
 using ProjNet.CoordinateSystems;
+using Urban.Application.GeometryLogic;
 
-namespace Urban.Application.Helpers
+namespace Urban.Application.LayoutLogic
 {
     public static class GeoJsonUtils
     {
@@ -135,7 +136,7 @@ namespace Urban.Application.Helpers
                     .Select(p => p.Coordinates.Select(c => new[] { c.X, c.Y }).ToArray())
                     .ToArray();
             }
-            else if (geometry is NetTopologySuite.Geometries.Point point)
+            else if (geometry is Point point)
             {
                 return new[] { point.X, point.Y };
             }

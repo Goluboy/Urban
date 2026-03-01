@@ -5,18 +5,16 @@ using Npgsql;
 using Serilog;
 using Serilog.Events;
 using Swashbuckle.AspNetCore.SwaggerUI;
-using System.Data.Entity;
-using System.Text.Json;
 using System.Text.Json.Serialization;
 using Urban.API.Auth.Filters;
 using Urban.API.Auth.Services;
 using Urban.API.Auth.Services.Interfaces;
+using Urban.Application.Display;
 using Urban.Application.Handlers;
 using Urban.Application.Interfaces;
+using Urban.Application.LayoutLogic;
 using Urban.Application.Logging;
 using Urban.Application.Logging.Interfaces;
-using Urban.Application.Services;
-using Urban.Application.Upgrades;
 using Urban.Persistence;
 using Urban.Persistence.GeoJson;
 
@@ -51,13 +49,12 @@ public class Program
         });
 
         builder.Services.AddScoped<IGeoLogger, GeoLogger>();
-        builder.Services.AddScoped<RestrictionHandler>();
+        builder.Services.AddScoped<RestrictionsHandler>();
 
         builder.Services.AddTransient<LayoutGenerator>();
         builder.Services.AddTransient<BuildingGenerator>();
         builder.Services.AddTransient<LayoutManager>();
         builder.Services.AddTransient<LayoutVisualizer>();
-        builder.Services.AddTransient<LayoutRestrictions>();
         builder.Services.AddTransient<LayoutGenerationService>();
 
         builder.Services.AddScoped<IGeoFeatureRepository>(sp =>

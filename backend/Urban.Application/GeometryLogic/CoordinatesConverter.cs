@@ -2,7 +2,7 @@ using NetTopologySuite.Geometries;
 using ProjNet.CoordinateSystems;
 using ProjNet.CoordinateSystems.Transformations;
 
-namespace Urban.Application.Helpers
+namespace Urban.Application.GeometryLogic
 {
     public static class CoordinatesConverter
     {
@@ -51,7 +51,7 @@ namespace Urban.Application.Helpers
         /// <returns>A representative coordinate (centroid or first point)</returns>
         private static Coordinate GetRepresentativeCoordinate(Geometry geometry)
         {
-            if (geometry is NetTopologySuite.Geometries.Point point)
+            if (geometry is Point point)
             {
                 return point.Coordinate;
             }

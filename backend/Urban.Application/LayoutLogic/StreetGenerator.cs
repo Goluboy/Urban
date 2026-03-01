@@ -1,11 +1,11 @@
 using NetTopologySuite.Geometries;
 using NetTopologySuite.Noding.Snapround;
 using NetTopologySuite.Operation.Polygonize;
+using Urban.Application.GeometryLogic;
 using Urban.Application.Helpers;
 using Urban.Application.Logging;
-using Urban.Application.Services;
 
-namespace Urban.Application.OldServices;
+namespace Urban.Application.LayoutLogic;
 
 public static class StreetGenerator
 {

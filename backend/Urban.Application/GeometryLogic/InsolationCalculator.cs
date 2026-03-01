@@ -2,7 +2,7 @@ using NetTopologySuite.Geometries;
 using Urban.Application.Logging;
 using Urban.Domain.Geometry;
 
-namespace Urban.Application.OldServices;
+namespace Urban.Application.GeometryLogic;
 
 public class InsolationCalculator
 {
@@ -62,7 +62,7 @@ public class InsolationCalculator
             var omega = 125.04 - 1934.136 * jc;
             var lambda = trueLong - 0.00569 - 0.00478 * Math.Sin(Deg(omega));
 
-            var epsilon0 = 23 + (26 + ((21.448 - jc * (46.815 + jc * (0.00059 - jc * 0.001813))) / 60)) / 60;
+            var epsilon0 = 23 + (26 + (21.448 - jc * (46.815 + jc * (0.00059 - jc * 0.001813))) / 60) / 60;
             var epsilon = epsilon0 + 0.00256 * Math.Cos(Deg(omega));
 
             var delta = Math.Asin(Math.Sin(Deg(epsilon)) * Math.Sin(Deg(lambda)));
@@ -80,7 +80,7 @@ public class InsolationCalculator
             while (TST < 0) TST += 1440;
             while (TST >= 1440) TST -= 1440;
 
-            var HA = (TST / 4.0) - 180.0;
+            var HA = TST / 4.0 - 180.0;
 
             var haRad = Deg(HA);
             var latRad = Deg(lat);
@@ -179,6 +179,6 @@ public class InsolationCalculator
         if (t < 0 || t > 1 || u < 0 || u > 1)
             return double.PositiveInfinity;
 
-        return Math.Sqrt((dx1 * t) * (dx1 * t) + (dy1 * t) * (dy1 * t));
+        return Math.Sqrt(dx1 * t * (dx1 * t) + dy1 * t * (dy1 * t));
     }
 }

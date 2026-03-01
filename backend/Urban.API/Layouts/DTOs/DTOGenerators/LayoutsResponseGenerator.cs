@@ -1,7 +1,7 @@
 ﻿using NetTopologySuite.Geometries;
 using ProjNet.CoordinateSystems;
-using Urban.Application.Helpers;
-using Urban.Application.Services;
+using Urban.Application.GeometryLogic;
+using Urban.Application.LayoutLogic;
 using Urban.Domain.Geometry;
 
 namespace Urban.API.Layouts.DTOs.DTOGenerators;

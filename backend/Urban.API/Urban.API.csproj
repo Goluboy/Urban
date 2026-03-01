@@ -34,4 +34,8 @@
     <ProjectReference Include="..\Urban.Persistence\Urban.Persistence.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="logs\" />
+  </ItemGroup>
+
 </Project>

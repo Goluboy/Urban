@@ -1,4 +1,4 @@
-﻿namespace Urban.Application.Upgrades
+﻿namespace Urban.Application.Display
 {
     public static class BuildingTemplates
     {

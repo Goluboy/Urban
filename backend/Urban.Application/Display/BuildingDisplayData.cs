@@ -1,6 +1,6 @@
 ﻿using NetTopologySuite.Geometries;
 
-namespace Urban.Application.Upgrades
+namespace Urban.Application.Display
 {
     public class BuildingDisplayData
     {

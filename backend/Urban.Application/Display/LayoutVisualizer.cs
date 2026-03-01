@@ -1,11 +1,9 @@
 ﻿using NetTopologySuite.Geometries;
-using Urban.Application.Helpers;
-using Urban.Application.Logging;
+using Urban.Application.GeometryLogic;
 using Urban.Application.Logging.Interfaces;
-using Urban.Application.Services;
 using Urban.Domain.Geometry;
 
-namespace Urban.Application.Upgrades
+namespace Urban.Application.Display
 {
     public class LayoutVisualizer(IGeoLogger geoLogger)
     {
@@ -22,7 +20,7 @@ namespace Urban.Application.Upgrades
 
                 foreach (var (polygon, _) in group)
                 {
-                    logItems.Add(((object)polygon,
+                    logItems.Add((polygon,
                         $"fill='{fillColor}' stroke='{strokeColor}' stroke-width='0.5'"));
                 }
             }
@@ -38,17 +36,17 @@ namespace Urban.Application.Upgrades
 
             var logItems = new List<(object geo, string style)>
             {
-                ((object)plot, "stroke='green' stroke-width='1' fill='none'")
+                (plot, "stroke='green' stroke-width='1' fill='none'")
             };
 
             foreach (var cell in restrictedCells)
             {
-                logItems.Add(((object)cell, "fill='#f0f0f0' stroke='#000000' stroke-width='0.3'"));
+                logItems.Add((cell, "fill='#f0f0f0' stroke='#000000' stroke-width='0.3'"));
             }
 
             foreach (var cell in availableCells)
             {
-                logItems.Add(((object)cell, "fill='#00FF00' stroke='#000000' stroke-width='0.3'"));
+                logItems.Add((cell, "fill='#00FF00' stroke='#000000' stroke-width='0.3'"));
             }
 
             geoLogger.LogSvg(title, logItems.ToArray());
@@ -61,17 +59,17 @@ namespace Urban.Application.Upgrades
 
             var logItems = new List<(object geo, string style)>
             {
-                ((object)plot, "stroke='green' stroke-width='1' fill='none'")
+                (plot, "stroke='green' stroke-width='1' fill='none'")
             };
 
             foreach (var cell in restrictedCells)
             {
-                logItems.Add(((object)cell, "fill='#FF0000' stroke='#000000' stroke-width='0.3'"));
+                logItems.Add((cell, "fill='#FF0000' stroke='#000000' stroke-width='0.3'"));
             }
 
             foreach (var cell in availableCells)
             {
-                logItems.Add(((object)cell, "fill='#00FF00' stroke='#000000' stroke-width='0.3'"));
+                logItems.Add((cell, "fill='#00FF00' stroke='#000000' stroke-width='0.3'"));
             }
 
             geoLogger.LogSvg(title, logItems.ToArray());
@@ -81,7 +79,7 @@ namespace Urban.Application.Upgrades
         {
             var logItems = new List<(object geo, string style)>
             {
-                ((object)plot, "stroke='green' stroke-width='1' fill='none'")
+                (plot, "stroke='green' stroke-width='1' fill='none'")
             };
 
             for (int i = 0; i < blocks.Count; i++)
@@ -89,7 +87,7 @@ namespace Urban.Application.Upgrades
                 string fillColor = GetPastelColor(i + 1);
                 string strokeColor = "#000000";
 
-                logItems.Add(((object)blocks[i],
+                logItems.Add((blocks[i],
                     $"fill='{fillColor}' stroke='{strokeColor}' stroke-width='0.5' opacity='0.8'"));
             }
 
@@ -104,12 +102,12 @@ namespace Urban.Application.Upgrades
 
             var logItems = new List<(object geo, string style)>
     {
-        ((object)layout.Block, "stroke='green' stroke-width='1' fill='none'")
+        (layout.Block, "stroke='green' stroke-width='1' fill='none'")
     };
 
             foreach (var street in streetLines)
             {
-                logItems.Add(((object)street, Styles.Street));
+                logItems.Add((street, Styles.Street));
             }
 
             // Use displayData if provided, otherwise fall back to layout.Sections
@@ -124,7 +122,7 @@ namespace Urban.Application.Upgrades
                     int blueValue = (int)(100 + 155 * intensity);
                     string buildingColor = $"#0000{blueValue:X2}";
 
-                    logItems.Add(((object)building.Polygon,
+                    logItems.Add((building.Polygon,
                         $"fill='{buildingColor}' stroke='#000033' stroke-width='0.5'"));
                 }
             }
@@ -137,14 +135,14 @@ namespace Urban.Application.Upgrades
                     int blueValue = (int)(100 + 155 * intensity);
                     string buildingColor = $"#0000{blueValue:X2}";
 
-                    logItems.Add(((object)section.Polygon,
+                    logItems.Add((section.Polygon,
                         $"fill='{buildingColor}' stroke='#000033' stroke-width='0.5'"));
                 }
             }
 
             foreach (var park in parkPolygons)
             {
-                logItems.Add(((object)park, Styles.Parks));
+                logItems.Add((park, Styles.Parks));
             }
 
             geoLogger.LogSvg($"{title} {layoutNumber}", logItems.ToArray());

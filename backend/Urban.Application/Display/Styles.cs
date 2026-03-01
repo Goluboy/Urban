@@ -1,4 +1,4 @@
-namespace Urban.Application.Helpers;
+namespace Urban.Application.Display;
 
 public static class Styles
 {

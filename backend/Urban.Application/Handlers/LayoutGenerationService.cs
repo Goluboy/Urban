@@ -1,11 +1,11 @@
 using NetTopologySuite.Geometries;
 using ProjNet.CoordinateSystems;
-using Urban.Application.Helpers;
+using Urban.Application.GeometryLogic;
+using Urban.Application.LayoutLogic;
 using Urban.Application.Logging.Interfaces;
-using Urban.Application.Upgrades;
 using Urban.Domain.Geometry;
 
-namespace Urban.Application.Services;
+namespace Urban.Application.Handlers;
 
 public class LayoutGenerationService(LayoutGenerator generator, IGeoLogger geoLogger)
 {

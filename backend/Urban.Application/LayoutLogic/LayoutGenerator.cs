@@ -1,20 +1,20 @@
 ﻿using NetTopologySuite.Geometries;
-using Urban.Application.Helpers;
+using Urban.Application.Display;
+using Urban.Application.GeometryLogic;
+using Urban.Application.Handlers;
 using Urban.Application.Logging;
 using Urban.Application.Logging.Interfaces;
-using Urban.Application.OldServices;
-using Urban.Application.Services;
 using Urban.Domain.Common;
 using Urban.Domain.Geometry;
 
-namespace Urban.Application.Upgrades
+namespace Urban.Application.LayoutLogic
 {
     public class LayoutGenerator(
         BuildingGenerator buildingGenerator, 
         LayoutManager layoutManager, 
         IGeoLogger geoLogger, 
         LayoutVisualizer visualizer,
-        LayoutRestrictions layoutRestrictions)
+        RestrictionsHandler restrictionsHandler)
     {
         public const double FloorHeight = 3.2;
 
@@ -45,7 +45,7 @@ namespace Urban.Application.Upgrades
             {
                 // STEP 0: Show original plot
                 geoLogger.LogSvg("Step 0: Original plot",
-                    ((object)plot, "stroke='green' stroke-width='2' fill='none'"));
+                    (plot, "stroke='green' stroke-width='2' fill='none'"));
 
                 var centroidPoint = new Point(plot.Centroid.Coordinate);
                 var centroid = (Point)CoordinatesConverter.FromUtm(centroidPoint, 41, true);
@@ -53,7 +53,7 @@ namespace Urban.Application.Upgrades
                 const int effectiveMaxFloors = 9;
 
                 // Get restrictions
-                var restrictions = (await layoutRestrictions.GetRestrictionsWithinDistance(plot, EnabledRestrictions)).ToArray();
+                var restrictions = (await restrictionsHandler.GetRestrictionsWithinDistance(plot, EnabledRestrictions)).ToArray();
 
                 // Show restrictions if any
                 if (restrictions.Any())

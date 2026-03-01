@@ -1,6 +1,6 @@
 ﻿using NetTopologySuite.Geometries;
 
-namespace Urban.Application.Upgrades
+namespace Urban.Application.Display
 {
     public enum BuildingCategory
     {
@@ -110,7 +110,7 @@ namespace Urban.Application.Upgrades
         private Polygon CreateLine2HPolygon(int startCol, int startRow, double cellSize, double startX, double startY, double buildingSize, double spacing)
         {
             // Two horizontal cells: (0,0), (1,0)
-            double totalWidth = (2 * buildingSize) + spacing;
+            double totalWidth = 2 * buildingSize + spacing;
             double totalHeight = buildingSize;
 
             double x = startX + startCol * cellSize + spacing / 2;
@@ -130,7 +130,7 @@ namespace Urban.Application.Upgrades
         private Polygon CreateLine3HPolygon(int startCol, int startRow, double cellSize, double startX, double startY, double buildingSize, double spacing)
         {
             // Three horizontal cells: (0,0), (1,0), (2,0)
-            double totalWidth = (3 * buildingSize) + (2 * spacing);
+            double totalWidth = 3 * buildingSize + 2 * spacing;
             double totalHeight = buildingSize;
 
             double x = startX + startCol * cellSize + spacing / 2;
@@ -150,7 +150,7 @@ namespace Urban.Application.Upgrades
         private Polygon CreateLine4HPolygon(int startCol, int startRow, double cellSize, double startX, double startY, double buildingSize, double spacing)
         {
             // Four horizontal cells: (0,0), (1,0), (2,0), (3,0)
-            double totalWidth = (4 * buildingSize) + (3 * spacing);
+            double totalWidth = 4 * buildingSize + 3 * spacing;
             double totalHeight = buildingSize;
 
             double x = startX + startCol * cellSize + spacing / 2;
@@ -171,7 +171,7 @@ namespace Urban.Application.Upgrades
         {
             // Two vertical cells: (0,0), (0,1)
             double totalWidth = buildingSize;
-            double totalHeight = (2 * buildingSize) + spacing;
+            double totalHeight = 2 * buildingSize + spacing;
 
             double x = startX + startCol * cellSize + spacing / 2;
             double y = startY + startRow * cellSize + spacing / 2;
@@ -191,7 +191,7 @@ namespace Urban.Application.Upgrades
         {
             // Three vertical cells: (0,0), (0,1), (0,2)
             double totalWidth = buildingSize;
-            double totalHeight = (3 * buildingSize) + (2 * spacing);
+            double totalHeight = 3 * buildingSize + 2 * spacing;
 
             double x = startX + startCol * cellSize + spacing / 2;
             double y = startY + startRow * cellSize + spacing / 2;
@@ -211,7 +211,7 @@ namespace Urban.Application.Upgrades
         {
             // Four vertical cells: (0,0), (0,1), (0,2), (0,3)
             double totalWidth = buildingSize;
-            double totalHeight = (4 * buildingSize) + (3 * spacing);
+            double totalHeight = 4 * buildingSize + 3 * spacing;
 
             double x = startX + startCol * cellSize + spacing / 2;
             double y = startY + startRow * cellSize + spacing / 2;
@@ -239,15 +239,15 @@ namespace Urban.Application.Upgrades
                 // Bottom-left (cell 0,0)
                 new Coordinate(leftX, bottomY),
                 // Bottom-right (cell 1,0)
-                new Coordinate(leftX + (2 * buildingSize) + spacing, bottomY),
+                new Coordinate(leftX + 2 * buildingSize + spacing, bottomY),
                 // Top-right (cell 1,0)
-                new Coordinate(leftX + (2 * buildingSize) + spacing, bottomY + buildingSize),
+                new Coordinate(leftX + 2 * buildingSize + spacing, bottomY + buildingSize),
                 // Move left to cell 0,0 top-right
                 new Coordinate(leftX + buildingSize, bottomY + buildingSize),
                 // Move up to cell 0,1 top-right
-                new Coordinate(leftX + buildingSize, bottomY + (2 * buildingSize) + spacing),
+                new Coordinate(leftX + buildingSize, bottomY + 2 * buildingSize + spacing),
                 // Move left to cell 0,1 top-left
-                new Coordinate(leftX, bottomY + (2 * buildingSize) + spacing),
+                new Coordinate(leftX, bottomY + 2 * buildingSize + spacing),
                 // Back to start
                 new Coordinate(leftX, bottomY)
             };
@@ -267,11 +267,11 @@ namespace Urban.Application.Upgrades
                 // Bottom-left (cell 0,0)
                 new Coordinate(leftX, bottomY),
                 // Bottom-right (cell 1,0)
-                new Coordinate(leftX + (2 * buildingSize) + spacing, bottomY),
+                new Coordinate(leftX + 2 * buildingSize + spacing, bottomY),
                 // Top-right (cell 1,1)
-                new Coordinate(leftX + (2 * buildingSize) + spacing, bottomY + (2 * buildingSize) + spacing),
+                new Coordinate(leftX + 2 * buildingSize + spacing, bottomY + 2 * buildingSize + spacing),
                 // Move left to cell 1,1 top-left
-                new Coordinate(leftX + buildingSize + spacing, bottomY + (2 * buildingSize) + spacing),
+                new Coordinate(leftX + buildingSize + spacing, bottomY + 2 * buildingSize + spacing),
                 // Move down to cell 1,0 top-left
                 new Coordinate(leftX + buildingSize + spacing, bottomY + buildingSize),
                 // Move left to cell 0,0 top-right
@@ -286,8 +286,8 @@ namespace Urban.Application.Upgrades
         private Polygon CreateSquare2x2Polygon(int startCol, int startRow, double cellSize, double startX, double startY, double buildingSize, double spacing)
         {
             // Square 2x2: (0,0), (1,0), (0,1), (1,1)
-            double totalWidth = (2 * buildingSize) + spacing;
-            double totalHeight = (2 * buildingSize) + spacing;
+            double totalWidth = 2 * buildingSize + spacing;
+            double totalHeight = 2 * buildingSize + spacing;
 
             double x = startX + startCol * cellSize + spacing / 2;
             double y = startY + startRow * cellSize + spacing / 2;
@@ -306,8 +306,8 @@ namespace Urban.Application.Upgrades
         private Polygon CreateSquare3x3Polygon(int startCol, int startRow, double cellSize, double startX, double startY, double buildingSize, double spacing)
         {
             // Square 3x3: 3x3 grid of cells
-            double totalWidth = (3 * buildingSize) + (2 * spacing);
-            double totalHeight = (3 * buildingSize) + (2 * spacing);
+            double totalWidth = 3 * buildingSize + 2 * spacing;
+            double totalHeight = 3 * buildingSize + 2 * spacing;
 
             double x = startX + startCol * cellSize + spacing / 2;
             double y = startY + startRow * cellSize + spacing / 2;
@@ -338,17 +338,17 @@ namespace Urban.Application.Upgrades
                 // Top-right (cell 0,0) / Bottom-right (cell 0,1)
                 new Coordinate(leftX + buildingSize, bottomY + buildingSize + spacing),
                 // Top-right (cell 0,1) / Bottom-right (cell 0,2)
-                new Coordinate(leftX + buildingSize, bottomY + (2 * buildingSize) + (2 * spacing)),
+                new Coordinate(leftX + buildingSize, bottomY + 2 * buildingSize + 2 * spacing),
                 // Bottom-right (cell 1,2)
-                new Coordinate(leftX + (2 * buildingSize) + spacing, bottomY + (2 * buildingSize) + (2 * spacing)),
+                new Coordinate(leftX + 2 * buildingSize + spacing, bottomY + 2 * buildingSize + 2 * spacing),
                 // Top-right (cell 1,2)
-                new Coordinate(leftX + (2 * buildingSize) + spacing, bottomY + (3 * buildingSize) + (2 * spacing)),
+                new Coordinate(leftX + 2 * buildingSize + spacing, bottomY + 3 * buildingSize + 2 * spacing),
                 // Top-left (cell 1,2) / Top-right (cell 0,2)
-                new Coordinate(leftX + buildingSize, bottomY + (3 * buildingSize) + (2 * spacing)),
+                new Coordinate(leftX + buildingSize, bottomY + 3 * buildingSize + 2 * spacing),
                 // Top-left (cell 0,2)
-                new Coordinate(leftX, bottomY + (3 * buildingSize) + (2 * spacing)),
+                new Coordinate(leftX, bottomY + 3 * buildingSize + 2 * spacing),
                 // Bottom-left (cell 0,2) / Top-left (cell 0,1)
-                new Coordinate(leftX, bottomY + (2 * buildingSize) + spacing),
+                new Coordinate(leftX, bottomY + 2 * buildingSize + spacing),
                 // Bottom-left (cell 0,1) / Top-left (cell 0,0)
                 new Coordinate(leftX, bottomY + buildingSize + spacing),
                 // Back to start
@@ -373,21 +373,21 @@ namespace Urban.Application.Upgrades
                 // Top-right (cell 0,0) / Bottom-right (cell 0,1)
                 new Coordinate(leftX + buildingSize, bottomY + buildingSize + spacing),
                 // Top-right (cell 0,1) / Bottom-right (cell 0,2)
-                new Coordinate(leftX + buildingSize, bottomY + (2 * buildingSize) + (2 * spacing)),
+                new Coordinate(leftX + buildingSize, bottomY + 2 * buildingSize + 2 * spacing),
                 // Bottom-right (cell 1,2)
-                new Coordinate(leftX + (2 * buildingSize) + spacing, bottomY + (2 * buildingSize) + (2 * spacing)),
+                new Coordinate(leftX + 2 * buildingSize + spacing, bottomY + 2 * buildingSize + 2 * spacing),
                 // Bottom-right (cell 2,2)
-                new Coordinate(leftX + (3 * buildingSize) + (2 * spacing), bottomY + (2 * buildingSize) + (2 * spacing)),
+                new Coordinate(leftX + 3 * buildingSize + 2 * spacing, bottomY + 2 * buildingSize + 2 * spacing),
                 // Top-right (cell 2,2)
-                new Coordinate(leftX + (3 * buildingSize) + (2 * spacing), bottomY + (3 * buildingSize) + (2 * spacing)),
+                new Coordinate(leftX + 3 * buildingSize + 2 * spacing, bottomY + 3 * buildingSize + 2 * spacing),
                 // Move left to cell 1,2 top-right
-                new Coordinate(leftX + (2 * buildingSize) + spacing, bottomY + (3 * buildingSize) + (2 * spacing)),
+                new Coordinate(leftX + 2 * buildingSize + spacing, bottomY + 3 * buildingSize + 2 * spacing),
                 // Move left to cell 0,2 top-right
-                new Coordinate(leftX + buildingSize, bottomY + (3 * buildingSize) + (2 * spacing)),
+                new Coordinate(leftX + buildingSize, bottomY + 3 * buildingSize + 2 * spacing),
                 // Top-left (cell 0,2)
-                new Coordinate(leftX, bottomY + (3 * buildingSize) + (2 * spacing)),
+                new Coordinate(leftX, bottomY + 3 * buildingSize + 2 * spacing),
                 // Bottom-left (cell 0,2) / Top-left (cell 0,1)
-                new Coordinate(leftX, bottomY + (2 * buildingSize) + spacing),
+                new Coordinate(leftX, bottomY + 2 * buildingSize + spacing),
                 // Bottom-left (cell 0,1) / Top-left (cell 0,0)
                 new Coordinate(leftX, bottomY + buildingSize + spacing),
                 // Back to start
@@ -408,15 +408,15 @@ namespace Urban.Application.Upgrades
                 // Bottom-left (cell 0,0)
                 new Coordinate(leftX, bottomY),
                 // Bottom-right (cell 2,0)
-                new Coordinate(leftX + (3 * buildingSize) + (2 * spacing), bottomY),
+                new Coordinate(leftX + 3 * buildingSize + 2 * spacing, bottomY),
                 // Top-right (cell 2,0)
-                new Coordinate(leftX + (3 * buildingSize) + (2 * spacing), bottomY + buildingSize),
+                new Coordinate(leftX + 3 * buildingSize + 2 * spacing, bottomY + buildingSize),
                 // Move left to cell 1,1 top-right
-                new Coordinate(leftX + (2 * buildingSize) + spacing, bottomY + buildingSize),
+                new Coordinate(leftX + 2 * buildingSize + spacing, bottomY + buildingSize),
                 // Move up to cell 1,1 top-right
-                new Coordinate(leftX + (2 * buildingSize) + spacing, bottomY + (2 * buildingSize) + spacing),
+                new Coordinate(leftX + 2 * buildingSize + spacing, bottomY + 2 * buildingSize + spacing),
                 // Move left to cell 1,1 top-left
-                new Coordinate(leftX + buildingSize + spacing, bottomY + (2 * buildingSize) + spacing),
+                new Coordinate(leftX + buildingSize + spacing, bottomY + 2 * buildingSize + spacing),
                 // Move down to cell 1,1 bottom-left
                 new Coordinate(leftX + buildingSize + spacing, bottomY + buildingSize),
                 // Move left to cell 0,0 top-right
@@ -456,7 +456,7 @@ namespace Urban.Application.Upgrades
 
             // Remove duplicate corners (where cells touch)
             var uniqueCorners = allCorners
-                .GroupBy(c => new { X = System.Math.Round(c.X, 3), Y = System.Math.Round(c.Y, 3) })
+                .GroupBy(c => new { X = Math.Round(c.X, 3), Y = Math.Round(c.Y, 3) })
                 .Select(g => g.First())
                 .ToList();
 
@@ -470,8 +470,8 @@ namespace Urban.Application.Upgrades
                 // Sort by angle from center
                 uniqueCorners.Sort((a, b) =>
                 {
-                    double angleA = System.Math.Atan2(a.Y - centerY, a.X - centerX);
-                    double angleB = System.Math.Atan2(b.Y - centerY, b.X - centerX);
+                    double angleA = Math.Atan2(a.Y - centerY, a.X - centerX);
+                    double angleB = Math.Atan2(b.Y - centerY, b.X - centerX);
                     return angleA.CompareTo(angleB);
                 });
 
