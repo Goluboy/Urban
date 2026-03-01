@@ -9,7 +9,7 @@ using Urban.Domain.Geometry;
 
 namespace Urban.Application.Upgrades
 {
-    public class NewLayoutGenerator(
+    public class LayoutGenerator(
         BuildingGenerator buildingGenerator, 
         LayoutManager layoutManager, 
         IGeoLogger geoLogger, 

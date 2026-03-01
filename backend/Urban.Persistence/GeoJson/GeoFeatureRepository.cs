@@ -5,12 +5,11 @@ using NetTopologySuite.IO;
 using Npgsql;
 using NpgsqlTypes;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using Urban.Application.Interfaces;
 using Urban.Domain.Common;
-using Urban.Domain.Geometry;
 using Urban.Domain.Geometry.Data;
-using Urban.Persistence.GeoJson.Services;
 
 namespace Urban.Persistence.GeoJson;
 
@@ -18,46 +17,145 @@ namespace Urban.Persistence.GeoJson;
 /// Repository used for bulk operations with data using Npgsql
 /// </summary>
 /// <param name="connectionString"></param>
-public class GeoFeatureRepository(string? connectionString, ApplicationDbContext context, IGeoJsonParser geoJsonParser) : IGeoFeatureRepository
+public class GeoFeatureRepository(string? connectionString, ApplicationDbContext context) : IGeoFeatureRepository
 {
     public async Task<List<Restriction>> GetRestrictionsByType(string type, CancellationToken ct = default)
     {
-        if (string.IsNullOrWhiteSpace(type))
-            return new List<Restriction>();
+        var results = new List<Restriction>();
 
-        // Try parse to enum first for exact matching
-        if (Enum.TryParse<RestrictionType>(type, ignoreCase: true, out var parsed))
+        await using var conn = new NpgsqlConnection(connectionString);
+        await conn.OpenAsync(ct);
+
+        const string sql = """
+            SELECT
+                "Id",
+                ST_AsBinary("Geometry") AS geom_wkb,
+                ST_SRID("Geometry") AS srid,
+                "Properties"::text AS properties,
+                "Discriminator",
+                "DateCreated",
+                "DateUpdated",
+                "DateDeleted",
+                "UserId",
+                "IsDeleted"
+            FROM "Restrictions"
+            WHERE "Discriminator" = @type
+              AND ("IsDeleted" IS NULL OR "IsDeleted" = FALSE);
+        """;
+
+        await using var cmd = new NpgsqlCommand(sql, conn);
+        cmd.Parameters.AddWithValue("type", type);
+
+        await using var reader = await cmd.ExecuteReaderAsync(ct);
+
+        var wkbReader = new WKBReader();
+        var jsonOptions = new JsonSerializerOptions { NumberHandling = JsonNumberHandling.AllowNamedFloatingPointLiterals };
+
+        while (await reader.ReadAsync(ct))
         {
-            var list = await context.Restrictions
-                .AsNoTracking()
-                .Where(r => r.Discriminator == parsed && (r.IsDeleted == null || r.IsDeleted == false))
-                .ToListAsync(ct);
+            var gf = new Restriction();
 
-            // populate non-mapped properties
-            foreach (var r in list)
-                r.BoundingBox = r.Geometry?.EnvelopeInternal;
+            // Id
+            if (!reader.IsDBNull(0))
+                gf.Id = reader.GetFieldValue<Guid>(0);
 
-            return list;
+            // Geometry
+            if (!reader.IsDBNull(1))
+            {
+                var bytes = reader.GetFieldValue<byte[]>(1);
+                try
+                {
+                    var geom = wkbReader.Read(bytes);
+                    if (!reader.IsDBNull(2))
+                    {
+                        geom.SRID = reader.GetFieldValue<int>(2);
+                    }
+                    gf.Geometry = geom;
+                }
+                catch
+                {
+                    // ignore malformed geometry for this row
+                    gf.Geometry = null;
+                }
+            }
+
+            // Properties (jsonb as text)
+            if (!reader.IsDBNull(3))
+            {
+                var propsText = reader.GetFieldValue<string>(3);
+                try
+                {
+                    var dict = JsonSerializer.Deserialize<Dictionary<string, object>>(propsText, jsonOptions);
+                    gf.Properties = dict;
+                }
+                catch
+                {
+                    gf.Properties = null;
+                }
+            }
+
+            // Discriminator
+            if (!reader.IsDBNull(4))
+            {
+                var discriminatorText = reader.GetFieldValue<string>(4)!;
+                gf.Discriminator = Enum.Parse<RestrictionType>(discriminatorText, ignoreCase: true);
+            }
+
+            // Dates and other metadata
+            if (!reader.IsDBNull(5))
+                gf.DateCreated = reader.GetFieldValue<DateTimeOffset>(5);
+
+            if (!reader.IsDBNull(6))
+                gf.DateUpdated = reader.GetFieldValue<DateTimeOffset?>(6);
+
+            if (!reader.IsDBNull(7))
+                gf.DateDeleted = reader.GetFieldValue<DateTimeOffset?>(7);
+
+            if (!reader.IsDBNull(8))
+                gf.UserId = reader.GetFieldValue<Guid>(8);
+
+            if (!reader.IsDBNull(9))
+                gf.IsDeleted = reader.GetFieldValue<bool>(9);
+
+            results.Add(gf);
         }
 
-        // Fallback: compare string representation
-        var fallbackList = await context.Restrictions
-            .AsNoTracking()
-            .Where(r => r.Discriminator.ToString() == type && (r.IsDeleted == null || r.IsDeleted == false))
-            .ToListAsync(ct);
-
-        foreach (var r in fallbackList)
-            r.BoundingBox = r.Geometry?.EnvelopeInternal;
-
-        return fallbackList;
+        return results;
     }
 
     public async Task<List<Restriction>> GetRestrictionsByType(RestrictionType type, CancellationToken ct = default)
     {
-        var list = await context.Restrictions
-            .AsNoTracking()
-            .Where(r => r.Discriminator == type && (r.IsDeleted == null || r.IsDeleted == false))
-            .ToListAsync(ct);
+        return await GetRestrictionsByType(type.ToString(), ct);
+    }
+
+    public async Task<List<Restriction>> GetNearestRestrictions(Geometry geometry, RestrictionType restrictionType, double distanceThreshold, CancellationToken ct = default)
+    {
+        if (geometry == null)
+            throw new ArgumentNullException(nameof(geometry));
+
+
+        // Prepare WKB for parameter
+        var wkbWriter = new WKBWriter();
+        var geomBytes = wkbWriter.Write(geometry);
+
+        // Raw SQL using geography for meter-accurate distances
+        const string sql = """
+                           SELECT * FROM "Restrictions" r 
+                           WHERE r."Discriminator" = @type
+                               AND(r."IsDeleted" IS NULL OR r."IsDeleted" = FALSE)
+                               AND ST_DWithin(r."Geometry"::geography, ST_SetSRID(ST_GeomFromWKB(@geom), @srid)::geography, @distance)
+                           ORDER BY ST_Distance(r."Geometry"::geography, ST_SetSRID(ST_GeomFromWKB(@geom), @srid)::geography) ASC;
+                           """;
+
+
+        var geomParam = new NpgsqlParameter("geom", NpgsqlDbType.Bytea) { Value = geomBytes };
+        var sridParam = new NpgsqlParameter("srid", 4326);
+        var typeParam = new NpgsqlParameter("type", restrictionType.ToString());
+        var distanceParam = new NpgsqlParameter("distance", distanceThreshold);
+
+        var query = context.Restrictions.FromSqlRaw(sql, typeParam, geomParam, sridParam, distanceParam).AsNoTracking();
+
+        var list = await query.ToListAsync(ct);
 
         foreach (var r in list)
             r.BoundingBox = r.Geometry?.EnvelopeInternal;
@@ -65,72 +163,52 @@ public class GeoFeatureRepository(string? connectionString, ApplicationDbContext
         return list;
     }
 
-    public async Task<IList<Restriction>> GetNearestRestrictions(Geometry geometry, RestrictionType restrictionType, double distanceThreshold, CancellationToken ct = default)
-    {
-        if (geometry == null)
-            throw new ArgumentNullException(nameof(geometry));
-
-        // Ensure SRID is set; default to 4326 if unknown
-        if (geometry.SRID == 0)
-            geometry.SRID = 4326;
-
-        // Use EF Core with NetTopologySuite translation to PostGIS
-        var query = context.Restrictions
-            .AsNoTracking()
-            .Where(r => r.Discriminator == restrictionType && r.Geometry != null)
-            .Where(r => r.Geometry.Distance(geometry) < distanceThreshold)
-            .OrderBy(r => r.Geometry.Distance(geometry));
-
-        var list = await query.ToListAsync(ct);
-
-        foreach (var r in list)
-            r.BoundingBox = r.Geometry?.EnvelopeInternal;
-
-        return list.ToList();
-    }
-
     public async Task<int> BulkInsertAsync(string geoJson, string type, CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(geoJson))
             return 0;
 
-        // Parse GeoJSON into domain GeoFeature objects
-        var features = geoJsonParser.ParseGeoJson(geoJson);
-        if (features == null || features.Count == 0)
-            return 0;
+        await using var conn = new NpgsqlConnection(connectionString);
 
-        if (string.IsNullOrWhiteSpace(type))
-            throw new ArgumentException("Type is required", nameof(type));
+        await conn.OpenAsync(ct);
 
-        if (!Enum.TryParse<RestrictionType>(type, ignoreCase: true, out var discriminator))
-            throw new ArgumentException($"Unknown restriction type: {type}", nameof(type));
+        // Ensure all non-nullable columns are provided to avoid NOT NULL constraint violations
+        const string sql = """
+            WITH data AS (
+                 SELECT @geoJson::jsonb AS fc
+             ),
+             parsed_features AS (
+                 SELECT
+                     gen_random_uuid() AS id,
+                     ST_GeomFromGeoJSON(feat->>'geometry') AS geom,
+                     feat - 'geometry' AS attributes
+                 FROM (
+                     SELECT jsonb_array_elements(fc->'features') AS feat
+                     FROM data
+                 ) AS f
+             )
+             INSERT INTO "Restrictions" ("Id", "Geometry", "Properties", "Discriminator", "DateCreated", "DateUpdated", "DateDeleted", "UserId", "IsDeleted")
+             SELECT 
+                 id,
+                 geom::geometry(Geometry, 4326),
+                 attributes::jsonb,
+                 @type,
+                 NOW() AT TIME ZONE 'UTC', -- DateCreated (set current UTC time)
+                 NULL,             -- DateUpdated
+                 NULL,             -- DateDeleted
+                 gen_random_uuid(),-- UserId (placeholder generated UUID)
+                 false             -- IsDeleted
+             FROM parsed_features
+             RETURNING "Id";
+            """;
 
-        var now = DateTimeOffset.UtcNow;
+        await using var cmd = new NpgsqlCommand(sql, conn);
+        cmd.Parameters.AddWithValue("geoJson", geoJson);
+        cmd.Parameters.AddWithValue("type", type);
 
-        var restrictions = features.Select(f =>
-        {
-            var r = new Restriction(f)
-            {
-                Id = Guid.NewGuid(),
-                Discriminator = discriminator,
-                DateCreated = now,
-                DateUpdated = null,
-                DateDeleted = null,
-                UserId = Guid.NewGuid(),
-                IsDeleted = false
-            };
+        var affectedNumber = await cmd.ExecuteNonQueryAsync(ct);
 
-            if (r.Geometry != null && r.Geometry.SRID == 0)
-                r.Geometry.SRID = 4326;
-
-            r.BoundingBox = r.Geometry?.EnvelopeInternal;
-            return r;
-        }).ToList();
-
-        await context.AddRangeAsync(restrictions, ct);
-        await context.SaveChangesAsync(ct);
-
-        return restrictions.Count;
+        return affectedNumber;
     }
 
     public async Task ImportFromFileAsync(IFormFile file, string type, CancellationToken ct = default)

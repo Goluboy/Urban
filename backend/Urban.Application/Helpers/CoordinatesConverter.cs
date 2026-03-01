@@ -221,10 +221,10 @@ namespace Urban.Application.Helpers
                 }).ToArray();
                 return new MultiPolygon(convertedPolygons);
             }
-            else if (geometry is NetTopologySuite.Geometries.Point point)
+            else if (geometry is Point point)
             {
                 var convertedCoord = ConvertCoordinate(point.Coordinate, transformation);
-                return new NetTopologySuite.Geometries.Point(convertedCoord);
+                return new Point(convertedCoord);
             }
             else if (geometry is LineString lineString)
             {

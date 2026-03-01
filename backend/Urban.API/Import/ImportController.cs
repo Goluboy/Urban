@@ -2,7 +2,6 @@
 using System.Text.Json;
 using Urban.Application.Interfaces;
 using Urban.Domain.Common;
-using Urban.Persistence.GeoJson.Services;
 
 namespace Urban.API.Import;
 

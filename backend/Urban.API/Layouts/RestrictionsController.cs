@@ -31,6 +31,8 @@ public class RestrictionsController(ILogger<RestrictionsController> logger, Rest
             // Convert polygon to UTM
             var (polygonUtm, utmSystem) = CoordinatesConverter.ToUtm(polygon);
 
+            //polygonUtm.SRID = 4326;
+
             // Get restrictions for the polygon
             var restrictions = await restrictionHandler.GetNearestRestrictions(polygonUtm);
                 

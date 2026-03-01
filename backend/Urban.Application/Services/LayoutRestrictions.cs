@@ -42,16 +42,16 @@ namespace Urban.Application.Services
                 return new();
 
             var result = new List<Restriction>();
-
             foreach (var rType in rTypes)
             {
                 if (!thresholds.TryGetValue(rType, out var threshold))
                     continue;
 
-                var items = GetRestrictionsByType(rType);
+                var itemsFromFile = GetRestrictionsByTypeFromFile(rType);
+                var itemsFromDB = await GetRestrictionsByTypeFromDb(rType);
 
                 // Use < (NOT <=)
-                foreach (var r in items) 
+                foreach (var r in itemsFromDB) 
                 {
                     var distance = target.Distance(r.Geometry);
                     if (distance < threshold)
@@ -65,12 +65,57 @@ namespace Urban.Application.Services
         // -------------------------------------------------------
         // Load all restrictions of a type
         // -------------------------------------------------------
-        private async Task<List<Restriction>> GetRestrictionsByType1(RestrictionType rType)
+        private async Task<List<Restriction>> GetRestrictionsByTypeFromDb(RestrictionType rType)
         {
-            return await geoFeatureRepository.GetRestrictionsByType(rType);
+            var restrictions = await geoFeatureRepository.GetRestrictionsByType(rType);
+
+            foreach (var restriction in restrictions)
+            {
+                var geom = restriction.Geometry;
+
+                if (geom.IsEmpty)
+                    continue;
+
+                SwapLonLat(geom);
+                if (geom is Polygon p)
+                {
+                    var (converted, _) = CoordinatesConverter.ToUtm(p);
+                    geom = converted;
+                }
+                else if (geom is Point pt)
+                {
+                    var (converted, _) = CoordinatesConverter.ToUtm(pt);
+                    geom = converted;
+                }
+
+                restriction.Geometry = geom;
+            }
+
+            return restrictions;
         }
 
-        public static List<Restriction> GetRestrictionsByType(RestrictionType rType)
+        private static void SwapLonLat(Geometry geom)
+        {
+            if (geom == null) return;
+
+            geom.Apply(new SwapXYFilter());
+        }
+
+        private class SwapXYFilter : ICoordinateSequenceFilter
+        {
+            public void Filter(CoordinateSequence seq, int i)
+            {
+                var x = seq.GetX(i);
+                var y = seq.GetY(i);
+                seq.SetX(i, y);
+                seq.SetY(i, x);
+            }
+
+            public bool Done => false;
+            public bool GeometryChanged => true;
+        }
+
+        public List<Restriction> GetRestrictionsByTypeFromFile(RestrictionType rType)
         {
             var path = Path.Combine(
                 Directory.GetCurrentDirectory(),

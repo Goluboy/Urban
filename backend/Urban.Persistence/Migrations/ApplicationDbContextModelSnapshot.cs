@@ -259,7 +259,7 @@ namespace Urban.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Restrictions");
+                    b.ToTable("Restrictions", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
