@@ -328,16 +328,7 @@ namespace Urban.Application.Helpers
         /// </summary>
         public static bool HasSignificantIntersection(Polygon poly1, Polygon poly2, double areaThreshold = 0.1)
         {
-            try
-            {
-                return poly1.Intersects(poly2) && poly1.Intersection(poly2).Area > areaThreshold;
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(poly1);
-                Console.WriteLine(poly2);
-                throw;
-            }
+            return poly1.Intersects(poly2) && poly1.Intersection(poly2).Area > areaThreshold;
             
             // return poly1.Relate(poly2, "2********");
             // return poly1.Intersects(poly2) && !poly1.Touches(poly2);

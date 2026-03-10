@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Net.Http.Headers;
 using Microsoft.OpenApi.Models;
 using Npgsql;
@@ -11,12 +12,15 @@ using Urban.API.Auth.Services;
 using Urban.API.Auth.Services.Interfaces;
 using Urban.Application.Display;
 using Urban.Application.Handlers;
+using Urban.Application.Import;
+using Urban.Application.Import.Interfaces;
 using Urban.Application.Interfaces;
 using Urban.Application.LayoutLogic;
 using Urban.Application.Logging;
 using Urban.Application.Logging.Interfaces;
 using Urban.Persistence;
 using Urban.Persistence.GeoJson;
+using Urban.Persistence.GeoJson.Services;
 
 namespace Urban.API;
 public class Program
@@ -56,16 +60,19 @@ public class Program
         builder.Services.AddTransient<LayoutManager>();
         builder.Services.AddTransient<LayoutVisualizer>();
         builder.Services.AddTransient<LayoutGenerationService>();
+        builder.Services.AddTransient<GeoJsonParser>(); 
 
         builder.Services.AddScoped<IGeoFeatureRepository>(sp =>
             new GeoFeatureRepository(
                 sp.GetRequiredService<IConfiguration>().GetConnectionString("DefaultConnection"),
-                sp.GetRequiredService<ApplicationDbContext>()
+                sp.GetRequiredService<ApplicationDbContext>(),
+                sp.GetRequiredService<GeoJsonParser>()
                 )
             );
 
         builder.Services.AddTransient<IJWTService, JwtService>();
-        
+        builder.Services.AddTransient<IGeoJsonImportService, GeoJsonImportService>();
+
         var dataSourceBuilder = new NpgsqlDataSourceBuilder(builder.Configuration.GetConnectionString("DefaultConnection"));
         dataSourceBuilder
             .UseNetTopologySuite()

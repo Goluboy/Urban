@@ -10,7 +10,6 @@ namespace Urban.API.Auth
     public class AuthController(
         UserManager<IdentityUser> userManager,
         SignInManager<IdentityUser> signInManager,
-        IConfiguration configuration,
         IJWTService jwtService) : ControllerBase
     {
         [HttpPost("register")]
@@ -41,7 +40,7 @@ namespace Urban.API.Auth
             var user = await userManager.FindByEmailAsync(request.Email);
             var token = jwtService.GenerateJwtToken(user!);
 
-            return Ok(new { token, email = user.Email, id = user.Id });
+            return Ok(new { token, email = user?.Email, id = user?.Id });
         }
 
     }

@@ -1,24 +1,32 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using NetTopologySuite.Geometries;
 using NetTopologySuite.IO;
+using Newtonsoft.Json;
 using Npgsql;
 using NpgsqlTypes;
+using System.Diagnostics;
+using System.Text;
 using System.Text.Json;
-using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using Urban.Application.Interfaces;
+using Urban.Application.Interfaces.Results;
 using Urban.Domain.Common;
 using Urban.Domain.Geometry.Data;
+using Urban.Persistence.GeoJson.Services;
 
 namespace Urban.Persistence.GeoJson;
 
-/// <summary>
-/// Repository used for bulk operations with data using Npgsql
-/// </summary>
-/// <param name="connectionString"></param>
-public class GeoFeatureRepository(string? connectionString, ApplicationDbContext context) : IGeoFeatureRepository
+
+public class GeoFeatureRepository(string? connectionString, ApplicationDbContext context, GeoJsonParser geoJsonParser) : IGeoFeatureRepository
 {
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        NumberHandling = JsonNumberHandling.AllowNamedFloatingPointLiterals,
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase) }
+    };
+
     public async Task<List<Restriction>> GetRestrictionsByType(string type, CancellationToken ct = default)
     {
         var results = new List<Restriction>();
@@ -49,7 +57,6 @@ public class GeoFeatureRepository(string? connectionString, ApplicationDbContext
         await using var reader = await cmd.ExecuteReaderAsync(ct);
 
         var wkbReader = new WKBReader();
-        var jsonOptions = new JsonSerializerOptions { NumberHandling = JsonNumberHandling.AllowNamedFloatingPointLiterals };
 
         while (await reader.ReadAsync(ct))
         {
@@ -85,7 +92,7 @@ public class GeoFeatureRepository(string? connectionString, ApplicationDbContext
                 var propsText = reader.GetFieldValue<string>(3);
                 try
                 {
-                    var dict = JsonSerializer.Deserialize<Dictionary<string, object>>(propsText, jsonOptions);
+                    var dict = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, object>>(propsText, JsonOptions);
                     gf.Properties = dict;
                 }
                 catch
@@ -123,12 +130,17 @@ public class GeoFeatureRepository(string? connectionString, ApplicationDbContext
         return results;
     }
 
+    
     public async Task<List<Restriction>> GetRestrictionsByType(RestrictionType type, CancellationToken ct = default)
     {
         return await GetRestrictionsByType(type.ToString(), ct);
     }
-
-    public async Task<List<Restriction>> GetNearestRestrictions(Geometry geometry, RestrictionType restrictionType, double distanceThreshold, CancellationToken ct = default)
+    
+    public async Task<List<Restriction>> GetNearestRestrictions(
+        Geometry geometry, 
+        RestrictionType restrictionType, 
+        double distanceThreshold, 
+        CancellationToken ct = default)
     {
         if (geometry == null)
             throw new ArgumentNullException(nameof(geometry));
@@ -153,7 +165,8 @@ public class GeoFeatureRepository(string? connectionString, ApplicationDbContext
         var typeParam = new NpgsqlParameter("type", restrictionType.ToString());
         var distanceParam = new NpgsqlParameter("distance", distanceThreshold);
 
-        var query = context.Restrictions.FromSqlRaw(sql, typeParam, geomParam, sridParam, distanceParam).AsNoTracking();
+        var query = context.Restrictions.FromSqlRaw(sql, typeParam, geomParam, sridParam, distanceParam)
+            .AsNoTracking();
 
         var list = await query.ToListAsync(ct);
 
@@ -163,7 +176,8 @@ public class GeoFeatureRepository(string? connectionString, ApplicationDbContext
         return list;
     }
 
-    public async Task<int> BulkInsertAsync(string geoJson, string type, CancellationToken ct)
+    
+    public async Task<int> BulkInsertEntireJsonAsync(string geoJson, string type, CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(geoJson))
             return 0;
@@ -211,14 +225,143 @@ public class GeoFeatureRepository(string? connectionString, ApplicationDbContext
         return affectedNumber;
     }
 
-    public async Task ImportFromFileAsync(IFormFile file, string type, CancellationToken ct = default)
+    public async Task<ImportResult> ImportGeoJsonStreamAsync(Stream stream, string type, CancellationToken ct)
     {
-        // Use Stream to avoid loading entire file into memory
-        await using var stream = file.OpenReadStream();
-        using var reader = new StreamReader(stream);
+        var stopwatch = Stopwatch.StartNew();
+        var featureCount = 0;
+        const int batchSize = 1000;
+        var batch = new List<GeoFeature>(batchSize);
 
-        var jsonString = await reader.ReadToEndAsync(ct);
+        // Use Utf8JsonReader for true streaming (no full-document load)
+        using var jsonReader = new StreamReader(stream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true, bufferSize: 81920);
+        using var reader = new JsonTextReader(jsonReader) { SupportMultipleContent = false };
 
-        await BulkInsertAsync(jsonString, type, ct);
+        // Parse GeoJSON features array incrementally
+        await foreach (var feature in geoJsonParser.ParseFeaturesAsync(stream, ct))
+        {
+            ct.ThrowIfCancellationRequested();
+            batch.Add(feature);
+            featureCount++;
+
+            // Batch insert every 1,000 features
+            if (batch.Count < batchSize) continue;
+
+            await BulkInsertFeaturesAsync(batch, type, ct);
+            batch.Clear();
+        }
+
+        // Insert final batch
+        if (batch.Count > 0)
+            await BulkInsertFeaturesAsync(batch, type, ct);
+
+        stopwatch.Stop();
+        return new ImportResult { FeatureCount = featureCount, ElapsedMilliseconds = stopwatch.ElapsedMilliseconds };
+    }
+
+    /// <summary>
+    /// Bulk inserts GeoFeatures using Npgsql binary COPY (fastest method)
+    /// </summary>
+    public async Task BulkInsertFeaturesAsync(
+        List<GeoFeature> features,
+        string type,
+        CancellationToken ct = default)
+    {
+        if (features == null || features.Count == 0)
+            return;
+        
+        // Ensure all geometries have SRID 4326 before insertion
+        foreach (var feature in features)
+        {
+            if (feature.Geometry != null && feature.Geometry.SRID == 0)
+                feature.Geometry.SRID = 4326;
+        }
+
+        // PostGisWriter to convert NetTopologySuite geometries to WKB for binary COPY
+        var postGisWriter = new PostGisWriter
+        {
+            HandleOrdinates = Ordinates.XY
+        };
+
+        await using var conn = new NpgsqlConnection(connectionString);
+        await conn.OpenAsync(ct);
+
+        // Use binary COPY (avoids sql parsing overhead)
+        await using var writer = await conn.BeginBinaryImportAsync(
+            @"COPY ""Restrictions"" 
+              (""Id"", ""Geometry"", ""Properties"", ""Discriminator"", 
+               ""DateCreated"", ""DateUpdated"", ""DateDeleted"", ""UserId"", ""IsDeleted"")
+              FROM STDIN (FORMAT BINARY)",
+            ct);
+
+        var nowUtc = DateTimeOffset.UtcNow;
+
+        foreach (var feature in features)
+        {
+            ct.ThrowIfCancellationRequested();
+
+            await writer.StartRowAsync(ct);
+
+            // 1. Id (Guid)
+            await writer.WriteAsync(feature.Id, NpgsqlDbType.Uuid, ct);
+
+            // 2. Geometry 
+            if (feature.Geometry != null)
+            {
+                // Critical: Ensure SRID is set before writing
+                if (feature.Geometry.SRID == 0)
+                    feature.Geometry.SRID = 4326;
+
+                // Write converted geometry
+                await writer.WriteAsync(postGisWriter.Write(feature.Geometry), ct);
+            }
+            else
+            {
+                await writer.WriteNullAsync(ct);
+            }
+
+            // 3. Properties jsonb
+            if (feature.Properties != null)
+            {
+                var jsonBytes = System.Text.Json.JsonSerializer.SerializeToUtf8Bytes(
+                    feature.Properties,
+                    JsonOptions);
+
+                await writer.WriteAsync(
+                    jsonBytes,
+                    NpgsqlDbType.Jsonb,
+                    ct);
+            }
+            else
+            {
+                await writer.WriteNullAsync(ct);
+            }
+
+            // 4. Discriminator (string enum value)
+            await writer.WriteAsync(type, NpgsqlDbType.Text, ct);
+
+            // 5. DateCreated (UTC now)
+            await writer.WriteAsync(nowUtc, NpgsqlDbType.TimestampTz, ct);
+
+            // 6. DateUpdated (NULL)
+            await writer.WriteNullAsync(ct);
+
+            // 7. DateDeleted (NULL)
+            await writer.WriteNullAsync(ct);
+
+            // 8. UserId placeholder
+            await writer.WriteAsync(Guid.NewGuid(), NpgsqlDbType.Uuid, ct);
+
+            // 9. IsDeleted (false)
+            await writer.WriteAsync(false, NpgsqlDbType.Boolean, ct);
+        }
+
+        // Commit the COPY operation
+        var rowsInserted = await writer.CompleteAsync(ct);
+
+        if (rowsInserted != (ulong)features.Count)
+        {
+            throw new InvalidOperationException(
+                $"COPY operation inserted {rowsInserted} rows but expected {features.Count}");
+        }
     }
 }

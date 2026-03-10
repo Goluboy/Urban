@@ -74,8 +74,9 @@ namespace Urban.Application.GeometryLogic
         {
             foreach (var restriction in restrictions)
             {
-                var env = restriction.EnvelopeInternal;
+                var env = restriction?.EnvelopeInternal;
 
+                if (env == null) continue;
                 int minCol = Math.Max(0, WorldToGridX(env.MinX));
                 int maxCol = Math.Min(_xCells - 1, WorldToGridX(env.MaxX));
                 int minRow = Math.Max(0, WorldToGridY(env.MinY));
@@ -86,7 +87,7 @@ namespace Urban.Application.GeometryLogic
                     for (int row = minRow; row <= maxRow; row++)
                     {
                         var cellPolygon = CreateCellPolygon(col, row);
-                        if (restriction.Intersects(cellPolygon))
+                        if (restriction != null && restriction.Intersects(cellPolygon))
                         {
                             _cells[GetCellIndex(col, row)] = false;
                         }
@@ -137,7 +138,7 @@ namespace Urban.Application.GeometryLogic
         /// <summary>
         /// Convert a cluster of cells to a polygon (convex hull of cells)
         /// </summary>
-        public Polygon ClusterToPolygon(List<(int col, int row)> cluster)
+        public Polygon? ClusterToPolygon(List<(int col, int row)> cluster)
         {
             if (cluster.Count == 0) return null;
 
@@ -177,7 +178,7 @@ namespace Urban.Application.GeometryLogic
         /// <summary>
         /// Convert a cluster of cells to a precise polygon (follows cell boundaries)
         /// </summary>
-        public Polygon ClusterToPrecisePolygon(List<(int col, int row)> cluster)
+        public Polygon? ClusterToPrecisePolygon(List<(int col, int row)> cluster)
         {
             if (cluster.Count == 0) return null;
 
@@ -368,7 +369,7 @@ namespace Urban.Application.GeometryLogic
 
             return cells;
         }
-        private Polygon CreatePolygonFromEdges(HashSet<Edge> edges)
+        private Polygon? CreatePolygonFromEdges(HashSet<Edge> edges)
         {
             if (edges.Count == 0) return null;
 
@@ -928,7 +929,7 @@ namespace Urban.Application.GeometryLogic
                 End = end;
             }
 
-            public override bool Equals(object obj)
+            public override bool Equals(object? obj)
             {
                 if (obj is Edge other)
                 {

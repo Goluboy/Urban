@@ -7,7 +7,7 @@ public class BaseEntity
 {
     [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-    public Guid Id { get; set; }
+    public Guid Id { get; set; } = Guid.NewGuid();
     public DateTimeOffset DateCreated { get; set; } = DateTimeOffset.Now;
     public DateTimeOffset? DateUpdated { get; set; }
     public DateTimeOffset? DateDeleted { get; set; }

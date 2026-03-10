@@ -1,5 +1,4 @@
 ﻿using NetTopologySuite.Geometries;
-using System.Text.Json;
 using Urban.Application.GeometryLogic;
 using Urban.Application.Interfaces;
 using Urban.Domain.Common;
@@ -66,23 +65,26 @@ namespace Urban.Application.Handlers
             {
                 var geom = restriction.Geometry;
 
-                if (geom.IsEmpty)
+                if (geom != null && geom.IsEmpty)
                     continue;
 
-                SwapXYFilter.SwapCoordinates(geom);
-
-                if (geom is Polygon p)
+                if (geom != null)
                 {
-                    var (converted, _) = CoordinatesConverter.ToUtm(p);
-                    geom = converted;
-                }
-                else if (geom is Point pt)
-                {
-                    var (converted, _) = CoordinatesConverter.ToUtm(pt);
-                    geom = converted;
-                }
+                    SwapXYFilter.SwapCoordinates(geom);
 
-                restriction.Geometry = geom;
+                    if (geom is Polygon p)
+                    {
+                        var (converted, _) = CoordinatesConverter.ToUtm(p);
+                        geom = converted;
+                    }
+                    else if (geom is Point pt)
+                    {
+                        var (converted, _) = CoordinatesConverter.ToUtm(pt);
+                        geom = converted;
+                    }
+
+                    restriction.Geometry = geom;
+                }
             }
 
             return restrictions;
